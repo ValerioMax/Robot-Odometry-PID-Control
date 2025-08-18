@@ -1,0 +1,1 @@
+include ../avr_common/avr.mk
