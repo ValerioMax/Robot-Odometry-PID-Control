@@ -11,3 +11,10 @@ Mi piace questa struttura di cartelle
 │   └── uart_utils.c
 └── tools
     └── avr_common.mk
+
+Pinout:
+PD2 -> ENCA
+PD3 -> ENCB
+PB1 -> PWM (EN)
+PB2 -> IN1
+PB3 -> IN2

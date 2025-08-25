@@ -12,38 +12,38 @@
 // PUO DARE PROBLEMI (AL MOMENTO E' CON UN INTERRUPT INTERNO OGNI 20ms PER IL TASK)
 
 // tempo di campionamento 20ms per avere freq campionamento 50Hz
-#define DELTA_T_MS 20
+#define DELTA_T_MS 3000
 
 int pos = 0; // starting shaft position in ticks
 float eprev = 0;
 float eintegral = 0;
 
 // [BEGIN] INTERNAL INTERRUPT ------------------------------------------
-volatile uint8_t interrupt_occured = 0;
-uint16_t interrupt_count = 0;
+volatile uint8_t internal_int_occured = 0;
+uint16_t internal_int_count = 0;
 
 // routine eseguita ogni delta_t
-ISR(TIMER0_COMPA_vect) {
-    interrupt_occured = 1;
-    //interrupt_count++;
+ISR(TIMER1_COMPA_vect) {
+    internal_int_occured = 1;
+    internal_int_count++;
 }
 
 void timer_internal_int_init() {
     // Usiamo timer 0
 
     // setta prescaler a 1024
-    TCCR0A = 0;
-    TCCR0B = (1 << WGM02) | (1 << CS00) | (1 << CS02); 
+    TCCR1A = 0;
+    TCCR1B = (1 << WGM12) | (1 << CS10) | (1 << CS12); 
 
     // clock = 16MHz , prescaler = 1024 --> freq = 16M / 1024 = 15625
     // Ogni secondo il timer fa 15625 tick
     // Se voglio un evento ogni k secondi deve essere OCR = 15625 * k
     uint16_t ocrval = (uint16_t) (15.625 * DELTA_T_MS);
 
-    OCR0A = ocrval;
+    OCR1A = ocrval;
 
     cli(); // disabilita interrupt
-    TIMSK0 |= (1 << OCIE0A); // abilita possibilità del timer di provocare interrupt
+    TIMSK1 |= (1 << OCIE1A); // abilita possibilità del timer di provocare interrupt
     sei(); // riabilita interrupt
 }
 // [END] ---------------------------------------------------------------
@@ -53,9 +53,17 @@ void timer_internal_int_init() {
 // [BEGIN] EXTERNAL INTERRUPT ------------------------------------------
 const uint8_t enc_pin_mask = (1 << 2) | (1 << 3);
 volatile uint8_t external_int_occurred = 0;
+uint16_t external_int_count = 0;
+
+ISR(INT0_vect) {
+  external_int_occurred = 1;
+  external_int_count++;
+}
 
 void external_int_init() {
     DDRD &= ~enc_pin_mask; // PD2 as input
+
+    PORTD |= enc_pin_mask; // pullup su PD0 (NOTA: COSI' LAVORIAMO A LOGICA INVERTITA CON L'ENCODER)
 
     // abilita interrupt 0 (abilitiamo interrupt solo su uno dei due pin dell'encoder)
     EIMSK |= 1 << INT0;
@@ -66,31 +74,27 @@ void external_int_init() {
     // abilita gli interrupt globali
     sei();
 }
-
-ISR(INT0_vect) {
-  external_int_occurred = 1;
-}
 // [END] ---------------------------------------------------------------
 
 
 
 // [BEGIN] PWM ---------------------------------------------------------
 // inverted logic (?) perchè pwm va al contrario
-//#define TCCRA_MASK (1 << WGM10) | (1 << COM1A0) | (1 << COM1A1)
-#define TCCRA_MASK (1 << WGM10) | (1 << COM1A1)
-#define TCCRB_MASK ((1 << WGM12) | (1 << CS10))
+// COM0A1 (non-inverting mode for OC0A), WGM01 and WGM00 (Fast PWM mode)
+#define TCCRA_MASK (1 << COM0A1) | (1 << WGM01) | (1 << WGM00)
+#define TCCRB_MASK (1 << CS01) | (1 << CS00) // Set prescaler to 64
 
 void timer_pwm_init() {
-    TCCR1A = TCCRA_MASK;
-    TCCR1B = TCCRB_MASK;
+    TCCR0A = TCCRA_MASK;
+    TCCR0B = TCCRB_MASK;
 
     // Setting dell'OCR 
-    OCR1AH = 0;
-    OCR1BH = 0;
-    //OCR1CH = 0; // ATMega only
-
     // initial duty cycle at 0
-    OCR1AL = 0;
+    OCR0A = 0;
+
+    // Setting del pin in output (PD6)
+    const uint8_t mask = (1 << 6);
+    DDRD |= mask;
 }
 // [END] ---------------------------------------------------------------
 
@@ -109,16 +113,14 @@ void read_encoder() {
 }
 
 void setMotor(int dir, int duty_cycle){
-    const uint8_t pwm_pin_mask = (1 << 1);
     const uint8_t in1_pin_mask = (1 << 2);
     const uint8_t in2_pin_mask = (1 << 3);
-    const uint8_t mask = pwm_pin_mask | in1_pin_mask | in2_pin_mask;
 
-    DDRB |= mask; // PB1,2,3 as output
+    DDRB |= (in1_pin_mask | in2_pin_mask); // PB2,3 as output
 
     // setting dutycycle (and so voltage intensity)
     uint16_t my_duty_cycle = (uint16_t) duty_cycle;
-    OCR1AL = my_duty_cycle;
+    OCR0A = my_duty_cycle;
 
     // setting direction
     if (dir == 1) {
@@ -132,7 +134,7 @@ void setMotor(int dir, int duty_cycle){
     else {
         PORTB &= ~in1_pin_mask; // in1 LOW
         PORTB &= ~in2_pin_mask; // in2 LOW
-    }  
+    }
 }
 
 void PID(int target) {
@@ -173,7 +175,7 @@ void PID(int target) {
     // store previous error
     eprev = e;
 
-    printf("%d, %d\n", target, pos);
+    //printf("%d, %d\n", target, pos);
 }
 
 int main() {
@@ -181,10 +183,10 @@ int main() {
     UART_init(19200);
     printf_init();
 
-    // initialize timer 0 for tempo di campionamento at 50Hz per fare il task
+    // initialize timer 1 for tempo di campionamento at 50Hz per fare il task
     timer_internal_int_init();
 
-    // initialize timer 1 for pwm
+    // initialize timer 0 for pwm
     timer_pwm_init();
 
     // initialize external interrupts for encoder
@@ -193,15 +195,19 @@ int main() {
     int target = 1000;
 
     while (1) {
-        if (interrupt_occured) {
-            interrupt_occured = 0; // reset flag
-            PID(target); // do task
-        }
         if (external_int_occurred) {
             external_int_occurred = 0; // reset flag
             read_encoder(); // do task
+            //printf("ex %d, in %d, pos %d\n", external_int_count, internal_int_count, pos);
+            //printf("%d %d\n", external_int_count, pos);
         }
-
+        if (internal_int_occured) {
+            internal_int_occured = 0; // reset flag
+            //PID(target); // do task
+            printf("ex %d, in %d, pos %d\n", external_int_count, internal_int_count, pos);
+            //printf("OCRA %u", OCR0A);
+        }
+        
         // blocca l'esecuzione a tempo indeterminato, si sblocca con un nuovo interrupt
         sleep_cpu();
     }
