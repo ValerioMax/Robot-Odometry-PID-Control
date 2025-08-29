@@ -19,3 +19,6 @@ Timer 2 (8  bit) per loggare a schermo ogni 1000ms
 
 [NOTA: WGMxy è il CTC bit che fa si che una volta triggerato l'interrupt interno
        il counter si resetti a 0 senza continuare a contare fino all' overflow (CREDO)]
+
+TODO vedi se builda sostituendo 
+flash: $(BUILD_DIR)/$(BIN_NAME).hex con flash: $(BUILD_DIR)/%.hex

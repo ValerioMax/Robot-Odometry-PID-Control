@@ -20,6 +20,8 @@ int pos_prev = 0;
 int pos = 0; // starting shaft position in ticks
 float v_tick = 0;
 float v_rpm = 0;
+float v_filt = 0;
+float v_filt_prev = 0;
 int dir = 1; // motor direction 1: CW, -1: CCW, 0: still
 float eprev = 0;
 float eintegral = 0;
@@ -186,12 +188,13 @@ void PID(int target) {
     // Convert velocity from tick/sec to rpm
     v_rpm = v_tick / 600.0*60.0;
 
-    // TODO AGGIUNGI FILTRO PASSA BASSO
-    // ...
+    // Low-pass filter (25 Hz cutoff frequency (w0))
+    v_filt = (0.854 * v_filt) + (0.0728 * v_rpm) + (0.0728 * v_filt_prev);
+    v_filt_prev = v_rpm;
 
     // error
     //int e = target - v_rpm;
-    int e = target - v_rpm;
+    int e = target - v_filt;
 
     // derivative
     float dedt = (e - eprev) / (DELTA_T_MS / 1000.0);
@@ -256,7 +259,7 @@ int main() {
         if (internal_int_log_occured) {
             internal_int_log_occured = 0; // reset flag
             //printf("int2\n");
-            printf("ext %d, trg %d, vel %d, pos %d, err %d, dtc %u, dir %d\n", external_int_count, target, (int) v_rpm, pos, (int) (target-v_rpm), OCR0A, dir);
+            printf("ext %d, trg %d, vel %d, pos %d, err %d, dtc %u, dir %d\n", external_int_count, target, (int) v_filt, pos, (int) (target-v_filt), OCR0A, dir);
             // NOTA: external_int_count va in overflow dopo un pò (not a problem)
         }
         
