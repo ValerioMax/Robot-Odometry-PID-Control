@@ -259,8 +259,8 @@ int main() {
         if (internal_int_log_occured) {
             internal_int_log_occured = 0; // reset flag
             //printf("int2\n");
-            printf("ext %d, trg %d, vel %d, pos %d, err %d, dtc %u, dir %d\n", external_int_count, target, (int) v_filt, pos, (int) (target-v_filt), OCR0A, dir);
-            // NOTA: external_int_count va in overflow dopo un pò (not a problem)
+            //printf("ext %d, trg %d, vel %d, pos %d, err %d, dtc %u, dir %d\n", external_int_count, target, (int) v_filt, pos, (int) (target-v_filt), OCR0A, dir);
+            printf("%d %d\n", target, (int) v_filt);
         }
         
         // blocca l'esecuzione a tempo indeterminato, si sblocca con un nuovo interrupt
