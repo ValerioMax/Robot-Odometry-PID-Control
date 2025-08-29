@@ -16,7 +16,10 @@
 // tempo di logging su seriale 2000ms
 #define DELTA_T_LOG_MS 2000
 
+int pos_prev = 0;
 int pos = 0; // starting shaft position in ticks
+float v_tick = 0;
+float v_rpm = 0;
 int dir = 1; // motor direction 1: CW, -1: CCW, 0: still
 float eprev = 0;
 float eintegral = 0;
@@ -75,6 +78,7 @@ void timer_internal_log_init() {
     TIMSK2 |= (1 << OCIE2A); // Enable the Timer2 Compare A interrupt
     sei();
 }
+
 // [END] ---------------------------------------------------------------
 
 
@@ -85,8 +89,8 @@ volatile uint8_t external_int_occurred = 0;
 uint16_t external_int_count = 0;
 
 ISR(INT0_vect) {
-  external_int_occurred = 1;
-  external_int_count++;
+    external_int_occurred = 1;
+    external_int_count++;
 }
 
 void external_int_init() {
@@ -133,12 +137,15 @@ void read_encoder() {
     const int mask = (1 << 3);
 
     // read ENCB pin state
-    int b = !((PIND & mask) == 0); // not per via del pullup
+    int b = (PIND & mask) == 0; // not per via del pullup
 
     if (b)
         pos++;
     else
         pos--;
+
+    // FORSE COSI' E' IMPRECISO (IMPLEMENTARE micros())
+
 }
 
 void set_motor(int dir, int u_pwm){
@@ -148,7 +155,7 @@ void set_motor(int dir, int u_pwm){
     DDRB |= (in1_pin_mask | in2_pin_mask); // PB2,3 as output
 
     // setting dutycycle (and so voltage intensity)
-    uint16_t duty_cycle = (uint16_t) u_pwm;
+    uint8_t duty_cycle = (uint8_t) u_pwm;
     OCR0A = duty_cycle;
 
     // setting direction
@@ -163,32 +170,41 @@ void set_motor(int dir, int u_pwm){
     else {
         PORTB &= ~in1_pin_mask; // in1 LOW
         PORTB &= ~in2_pin_mask; // in2 LOW
-    }
+    }  
 }
 
 void PID(int target) {
     // PID parameters
-    float kp = 1;
+    float kp = 3;
     float kd = 0.0; //0.025;
-    float ki = 0.0005;
+    float ki = 0.5; //0.0005;
+
+    // Compute velocity
+    v_tick = (pos - pos_prev) / (DELTA_T_MS / 1000.0);
+    pos_prev = pos;
+
+    // Convert velocity from tick/sec to rpm
+    v_rpm = v_tick / 600.0*60.0;
+
+    // TODO AGGIUNGI FILTRO PASSA BASSO
+    // ...
 
     // error
-    int e = pos - target;
+    //int e = target - v_rpm;
+    int e = target - v_rpm;
 
     // derivative
-    float dedt = (e - eprev) / (DELTA_T_MS * 1000);
+    float dedt = (e - eprev) / (DELTA_T_MS / 1000.0);
 
     // integral
-    eintegral = eintegral + e * (DELTA_T_MS * 1000);
+    eintegral = eintegral + e * (DELTA_T_MS / 1000.0);
 
     // control signal
     float u = (kp * e) + (kd * dedt) + (ki * eintegral);
 
-    // motor speed signal 
-    // (it has to be a pwm duty cycle so it has to be positive and between 0 and 255 to prevent overflow)
+    // motor power
     float u_pwm = fabs(u);
 
-    // cap it to max value
     if(u_pwm > 255)
         u_pwm = 255;
     // SE E' MINORE DI 0? o -255?
@@ -198,7 +214,7 @@ void PID(int target) {
     if (u < 0)
         dir = -1;
 
-    // actuate command
+    // signal the motor
     set_motor(dir, u_pwm);
 
     // store previous error
@@ -215,7 +231,6 @@ int main() {
     // initialize timer 1 for tempo di campionamento at 50Hz per fare il task
     timer_internal_sample_init();
 
-    // initialize timer 2 for logging on Serial at 0.5Hz
     timer_internal_log_init();
 
     // initialize timer 0 for pwm
@@ -224,7 +239,7 @@ int main() {
     // initialize external interrupts for encoder
     external_int_init();
 
-    int target = 1000;
+    int target = 100;
 
     while (1) {
         if (external_int_occurred) {
@@ -241,7 +256,8 @@ int main() {
         if (internal_int_log_occured) {
             internal_int_log_occured = 0; // reset flag
             //printf("int2\n");
-            printf("ext %d, trg %d, pos %d, err %d, dtc %u, dir %d\n", external_int_count, target, pos, pos-target, OCR0A, dir);
+            printf("ext %d, trg %d, vel %d, pos %d, err %d, dtc %u, dir %d\n", external_int_count, target, (int) v_rpm, pos, (int) (target-v_rpm), OCR0A, dir);
+            // NOTA: external_int_count va in overflow dopo un pò (not a problem)
         }
         
         // blocca l'esecuzione a tempo indeterminato, si sblocca con un nuovo interrupt
