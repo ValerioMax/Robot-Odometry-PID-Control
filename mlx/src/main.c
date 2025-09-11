@@ -5,7 +5,7 @@ int main() {
     void *mlx;
 	void *win;
     t_img img;
-    int **sample_data;
+    t_sample *sample_data[NUM_SAMPLES];
 
     // initialize graphical system, identified by void *mlx
     mlx = mlx_init();
@@ -21,8 +21,7 @@ int main() {
 	img.pixels = mlx_get_data_addr(img.img, &img.bits_per_pixel, &img.line_length, &img.endian);
 
     data_init(sample_data);
-    //get_data_from_tsv(sample_data, DATA_FILE_NAME);
-    printf("ao ");
+    get_data_from_tsv(sample_data, DATA_FILE_NAME);
     draw_data(sample_data, &img);
 
     // draw the image pixels on the window
