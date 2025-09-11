@@ -7,9 +7,6 @@
 
 # include "shared_types.h"
 
-# define WIDTH 700
-# define HEIGHT 700
-
 typedef struct	s_img {
 	void	*img;
 	char	*pixels;
@@ -20,6 +17,7 @@ typedef struct	s_img {
 
 uint32_t	create_trgb(uint8_t t, uint8_t r, uint8_t g, uint8_t b);
 void		my_mlx_pixel_put(t_img *data, int x, int y, int color);
-void		draw_data(t_sample *sample_data[], t_img *img);
+void		draw_data(t_sample *sample_data[], t_img *img, t_info *axis_info);
+void		draw_info(void *mlx, void *win, t_info *axis_info);
 
 #endif

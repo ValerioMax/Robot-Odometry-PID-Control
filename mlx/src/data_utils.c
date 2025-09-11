@@ -1,8 +1,20 @@
 #include "data_utils.h"
 
-void data_init(t_sample *sample_data[]) {
+void sample_data_init(t_sample *sample_data[]) {
     for (int i = 0; i < NUM_SAMPLES; i++)
         sample_data[i] = malloc(sizeof(t_sample));
+}
+
+void free_sample_data(t_sample *sample_data[]) {
+    if (!sample_data)
+        return ;
+
+    for (int i = 0; i < NUM_SAMPLES; i++) {
+        if (sample_data[i]) {
+            free(sample_data[i]);
+            sample_data[i] = NULL;
+        }
+    }
 }
 
 void read_line(int fd, t_sample *sample_data) {
@@ -41,6 +53,18 @@ void get_data_from_tsv(t_sample *sample_data[], const char *filename) {
     for (int i = 0; i < NUM_SAMPLES; i++){
         read_line(fd, sample_data[i]); //TODO capire se la read legge dall'ultimo byte letto alla chiamata precedente oppure si resetta dall'inizio del file
                                         // -> in questo caso bisogna passare un puntatore a dove era rimasta
-    }
-        
+    }   
+}
+
+void get_axis_info(t_sample *sample_data[], t_info *axis_info) {
+    if (!sample_data || !sample_data[0] || !sample_data[NUM_SAMPLES - 1])
+		return ;
+
+    // get time_min and time_max to get y-axis range
+	axis_info->time_min = (double) sample_data[0]->timestamp;
+	axis_info->time_max = (double) sample_data[NUM_SAMPLES - 1]->timestamp;
+    axis_info->time_range = fabs(axis_info->time_max - axis_info->time_min);
+
+    axis_info->value_max = MAX_SAMPLE_VALUE; // TODO change this value
+    //printf("%lf %lf %lf\n", axis_info->time_min, axis_info->time_max, axis_info->time_range);
 }

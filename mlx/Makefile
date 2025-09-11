@@ -8,9 +8,9 @@ SRCS_DIR = src
 
 SRCS =	src/*
 
-MLX_FLAGS = -L. -lmlx_Linux -lX11 -lXext -lm #-lz -lXrender
+MLX_FLAGS = -Llib/. -lmlx_Linux -lX11 -lXext -lm #-lz -lXrender
 
-MLX_LIB = libmlx_Linux.a
+MLX_LIB = lib/libmlx_Linux.a
 
 all : $(NAME)
 
