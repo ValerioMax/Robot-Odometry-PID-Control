@@ -1,23 +1,17 @@
-Mi piace questa struttura di cartelle
-
-.
-├── build
-├── include
-│   └── uart_utils.h
-├── Makefile
-├── readme.txt
-├── src
-│   ├── pid_pos.c
-│   └── uart_utils.c
-└── tools
-    └── avr_common.mk
-
 Pinout:
-PD2 -> ENCA
-PD3 -> ENCB
-PD6 -> PWM (ENable)
-PB2 -> IN1
-PB3 -> IN2
+Arduino Uno pinout:
+https://images.prismic.io/circuito/8e3a980f0f964cc539b4cbbba2654bb660db6f52_arduino-uno-pinout-diagram.png?auto=compress,format
+
+Encoder:
+5V  -> 5V           [blue encoder]
+GND -> GND          [green encoder]
+PD2 -> ENCA         [white encoder]
+PD3 -> ENCB         [yellow encoder]
+
+HBridge Motor2:
+PD6 -> E2 (pwm_2)
+PB2 -> A2 (in2_1)
+PB3 -> B2 (in2_2)
 
 Usiamo 
 Timer 0 (8  bit) per la PWM

@@ -176,10 +176,10 @@ void PID(int target) {
     int e = pos - target;
 
     // derivative
-    float dedt = (e - eprev) / (DELTA_T_MS * 1000);
+    float dedt = (e - eprev) / (DELTA_T_MS / 1000.0);
 
     // integral
-    eintegral = eintegral + e * (DELTA_T_MS * 1000);
+    eintegral = eintegral + e * (DELTA_T_MS / 1000.0);
 
     // control signal
     float u = (kp * e) + (kd * dedt) + (ki * eintegral);
