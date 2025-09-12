@@ -1,9 +1,8 @@
-INCLUDE_DIRS=-I. -I../avr_common
+INCLUDE_DIRS=-I. -I../tools -I./include
 CXX=avr-g++
 CC=avr-gcc
 AS=avr-gcc
 AVRDUDE=avrdude
-
 
 CC_OPTS_GLOBAL=\
 -O3\
@@ -14,8 +13,8 @@ CC_OPTS_GLOBAL=\
 $(INCLUDE_DIRS)\
 -DF_CPU=16000000UL\
 
-TARGET=mega
-#TARGET=uno
+#TARGET=mega
+TARGET=uno
 AVRDUDE_PORT=/dev/ttyACM0
 
 ifeq ($(TARGET), mega)
@@ -47,20 +46,22 @@ AVRDUDE_FLAGS += -c $(AVRDUDE_BOOTLOADER)
 all:	$(BINS) 
 
 #common objects
-%.o:	%.c 
+$(BUILD_DIR)/%.o:	$(SRC_DIR)/%.c 
 	$(CC) $(CC_OPTS) -c  -o $@ $<
 
-%.o:	%.s 
+$(BUILD_DIR)/%.o:	$(SRC_DIR)/%.s 
 	$(AS) $(AS_OPTS) -c  -o $@ $<
 
-%.elf:	%.o $(OBJS)
+$(BUILD_DIR)/%.elf:	$(BUILD_DIR)/%.o $(OBJS)
 	$(CC) $(CC_OPTS) -o $@ $< $(OBJS) $(LIBS)
 
-%.hex:	%.elf
+$(BUILD_DIR)/%.hex:	$(BUILD_DIR)/%.elf
 	avr-objcopy -O ihex -R .eeprom $< $@
-	$(AVRDUDE) $(AVRDUDE_FLAGS) -U flash:w:$@:i #$(AVRDUDE_WRITE_EEPROM) 
+	$(AVRDUDE) $(AVRDUDE_FLAGS) -U flash:w:$@:i #$(AVRDUDE_WRITE_EEPROM)
+
+flash: $(BUILD_DIR)/$(BIN_NAME).hex
 
 clean:	
-	rm -rf $(OBJS) $(BINS) *.hex *~ *.o
+	rm -rf $(OBJS) $(BINS) $(BUILD_DIR)/*.hex $(BUILD_DIR)/*~ $(BUILD_DIR)/*.o
 
 .SECONDARY:	$(OBJS)

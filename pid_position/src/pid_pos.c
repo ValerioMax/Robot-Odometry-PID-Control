@@ -7,9 +7,6 @@
 #include "peripherals_utils.h"
 #include "motor_utils.h"
 
-// FORSE VA IMPLEMENTATA LA FUNZIONE micros(), COSI' COM'E' FORSE
-// PUO DARE PROBLEMI (AL MOMENTO E' CON UN INTERRUPT INTERNO OGNI 20ms PER IL TASK)
-
 // from motor_utils.c
 extern int pos; // starting shaft position in ticks
 extern int dir; // motor direction 1: CW, -1: CCW, 0: still
@@ -55,7 +52,7 @@ int main() {
         }
         // every DELTA_T_LOG_MS data gets logged on UART
         if (millis() > prev_log_time + DELTA_T_LOG_MS) {
-            printf("ext %d, trg %d, pos %d, err %d, dtc %u, dir %d\n", external_int_count, target, pos, pos-target, OCR0A, dir); // do task
+            printf("ext %d, trg %d, pos %d, err %d, dtc %u, dir %d\n", external_int_count, target, pos, target-pos, OCR0A, dir); // do task
             prev_log_time = millis();
         }
     }

@@ -2,11 +2,19 @@ To build and flash on MCU board:
     $> make flash
 
 Pinout:
-PD2 -> ENCA
-PD3 -> ENCB
-PD6 -> PWM (ENable)
-PB2 -> IN1
-PB3 -> IN2
+Arduino Uno pinout:
+https://images.prismic.io/circuito/8e3a980f0f964cc539b4cbbba2654bb660db6f52_arduino-uno-pinout-diagram.png?auto=compress,format
+
+Encoder:
+5V  -> 5V           [blue encoder]
+GND -> GND          [green encoder]
+PD2 -> ENCA         [yellow encoder]
+PD3 -> ENCB         [white encoder]
+
+HBridge Motor2:
+PD6 -> E2 (pwm_2)
+PB2 -> A2 (in2_1)
+PB3 -> B2 (in2_2)
 
 Usiamo 
 Timer 0 (8  bit) per la PWM
@@ -19,6 +27,3 @@ Timer 2 (8  bit) per loggare a schermo ogni 1000ms
 
 [NOTA: WGMxy è il CTC bit che fa si che una volta triggerato l'interrupt interno
        il counter si resetti a 0 senza continuare a contare fino all' overflow (CREDO)]
-
-TODO vedi se builda sostituendo 
-flash: $(BUILD_DIR)/$(BIN_NAME).hex con flash: $(BUILD_DIR)/%.hex

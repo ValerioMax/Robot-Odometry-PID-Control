@@ -25,13 +25,25 @@ ISR(PCINT0_vect) {
 }
 
 int main(void){
-  printf_init(); 
-  DDRB &= ~PIN_MASK; //set PIN_MASK pins as input
-  PORTB |= PIN_MASK; //enable pull up resistors
-  PCICR |= (1 << PCIE0); // set interrupt on change, looking up PCMSK0
-  PCMSK0 |= PIN_MASK;   // set PCINT0 to trigger an interrupt on state change 
+  UART_init(19600);
+  printf_init();
+
+  //set pin_mask pins as input
+  DDRB &= ~pin_mask;
+
+  //enable pull up resistors
+  PORTB |= pin_mask;
+
+  // set interrupt on change, looking up PCMSK0
+  PCICR |= (1 << PCIE0);
+
+  // set PCINT0 group (pins PCINT0,1,2,3) to trigger an interrupt on state change
+  PCMSK0 |= PIN_MASK;
+  
+  // enable global interrupts
   sei();
-  while(1){
+
+  while(1) {
     if (int_occurred) {
       // we reset the flag;
       int_occurred=0;

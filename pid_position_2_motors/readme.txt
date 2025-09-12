@@ -1,15 +1,31 @@
+Pin definitions and so code refers to Arduino Mega!!!!
+
+To build and flash on MCU board:
+    $> make flash
+
 Pinout:
 Arduino Uno pinout:
 https://images.prismic.io/circuito/8e3a980f0f964cc539b4cbbba2654bb660db6f52_arduino-uno-pinout-diagram.png?auto=compress,format
 
-Encoder:
+Encoder1:
 5V  -> 5V           [blue encoder]
 GND -> GND          [green encoder]
-PD2 -> ENCA         [white encoder]
-PD3 -> ENCB         [yellow encoder]
+PD2 -> ENCA         [yellow encoder]
+PD3 -> ENCB         [white encoder]
+
+Encoder2:
+5V  -> 5V           [blue encoder]
+GND -> GND          [green encoder]
+PD2 -> ENCA         [yellow encoder]
+PD3 -> ENCB         [white encoder]
+
+HBridge Motor1:
+PD5 -> E1 (pwm1)
+PB -> A1 (in1_1)
+PB -> B1 (in1_2)
 
 HBridge Motor2:
-PD6 -> E2 (pwm_2)
+PD6 -> E2 (pwm2)
 PB2 -> A2 (in2_1)
 PB3 -> B2 (in2_2)
 

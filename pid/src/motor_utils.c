@@ -1,6 +1,11 @@
 #include "motor_utils.h"
 
+int pos_prev = 0;
 int pos = 0; // starting shaft position in ticks
+float v_tick = 0;
+float v_rpm = 0;
+float v_filt = 0;
+float v_filt_prev = 0;
 int dir = 1; // motor direction 1: CW, -1: CCW, 0: still
 float eprev = 0;
 float eintegral = 0;
@@ -43,8 +48,20 @@ void set_motor(int dir, int u_pwm){
 }
 
 void PID(int target) {
+    // Compute velocity
+    v_tick = (pos - pos_prev) / (DELTA_T_MS / 1000.0);
+    pos_prev = pos;
+
+    // Convert velocity from tick/sec to rpm
+    v_rpm = v_tick / 600.0*60.0;
+
+    // Low-pass filter (25 Hz cutoff frequency (w0))
+    v_filt = (0.854 * v_filt) + (0.0728 * v_rpm) + (0.0728 * v_filt_prev);
+    v_filt_prev = v_rpm;
+
     // error
-    int e = pos - target;
+    //int e = target - v_rpm;
+    int e = target - v_filt;
 
     // derivative
     float dedt = (e - eprev) / (DELTA_T_MS / 1000.0);
@@ -55,11 +72,9 @@ void PID(int target) {
     // control signal
     float u = (KP * e) + (KD * dedt) + (KI * eintegral);
 
-    // motor speed signal 
-    // (it has to be a pwm duty cycle so it has to be positive and between 0 and 255 to prevent overflow)
+    // motor power
     float u_pwm = fabs(u);
 
-    // cap it to max value
     if(u_pwm > 255)
         u_pwm = 255;
     // SE E' MINORE DI 0? o -255?
@@ -69,7 +84,7 @@ void PID(int target) {
     if (u < 0)
         dir = -1;
 
-    // actuate command
+    // signal the motor
     set_motor(dir, u_pwm);
 
     // store previous error
