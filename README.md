@@ -21,3 +21,7 @@ Mappare dispositivo USB su virtual machine (VirtualBox):
 vai su Impostazioni -> USB,
 aggiungi nuovo filtro USB (icona +) selezionando il dispositivo,
 riavvia macchina virtuale.
+
+-------------------------------
+
+Ricordati di creare la cartella build/ quando cloni da github

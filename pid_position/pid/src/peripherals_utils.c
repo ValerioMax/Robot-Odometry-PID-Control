@@ -1,60 +1,10 @@
 #include "peripherals_utils.h"
 
 // [BEGIN] INTERNAL INTERRUPT ------------------------------------------
-volatile uint8_t internal_int_sample_occured = 0;
-uint16_t internal_int_sample_count = 0;
-volatile uint8_t internal_int_log_occured = 0;
-uint16_t internal_int_log_count = 0;
-
-volatile uint8_t internal_int_occured = 0;
 uint64_t internal_int_count = 0;
 
 ISR(TIMER1_COMPA_vect) {
-    internal_int_occured = 1;
     internal_int_count++;
-}
-
-ISR(TIMER2_COMPA_vect) {
-    internal_int_log_count++;
-    if (internal_int_log_count >= 200) { // Check if 200 * 10ms = 2000ms has passed
-        internal_int_log_count = 0;
-        internal_int_log_occured = 1;
-        // This code runs every 2000ms
-    }
-}
-
-void timer_internal_sample_init() {
-    // Usiamo timer 1 per il tempo di campionamento a 50Hz
-
-    // setta prescaler a 1024
-    TCCR1A = 0;
-    TCCR1B = (1 << WGM12) | (1 << CS10) | (1 << CS12);
-
-    // clock = 16MHz , prescaler = 1024 --> freq = 16M / 1024 = 15625
-    // Ogni secondo il timer fa 15625 tick
-    // Se voglio un evento ogni k secondi deve essere OCR = 15625 * k
-    uint16_t ocrval = (uint16_t) (15.625 * DELTA_T_MS);
-
-    OCR1A = ocrval;
-
-    cli(); // disabilita interrupt
-    TIMSK1 |= (1 << OCIE1A); // abilita possibilità del timer di provocare interrupt
-    sei(); // riabilita interrupt
-}
-
-void timer_internal_log_init() {
-    // Usiamo timer 2 per il logging ogni 1sec
-
-    // Set CTC mode (WGM21) and prescaler to 1024
-    TCCR2A |= (1 << WGM21);
-    TCCR2B |= (1 << CS22) | (1 << CS21) | (1 << CS20);
-    
-    uint8_t ocrval = (uint8_t) (15.625 * (DELTA_T_LOG_MS / 200));
-    OCR2A = ocrval; // Set the compare value
-
-    cli();
-    TIMSK2 |= (1 << OCIE2A); // Enable the Timer2 Compare A interrupt
-    sei();
 }
 
 void timer_internal_init() {
@@ -74,6 +24,11 @@ void timer_internal_init() {
     cli(); // disabilita interrupt
     TIMSK1 |= (1 << OCIE1A); // abilita possibilità del timer di provocare interrupt
     sei(); // riabilita interrupt
+}
+
+// return milliseconds passed since start of the program
+uint64_t millis() {
+    return internal_int_count;
 }
 // [END] ---------------------------------------------------------------
 

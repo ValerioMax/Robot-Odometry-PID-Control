@@ -17,29 +17,19 @@ extern float eprev;
 extern float eintegral;
 
 // from peripheral_utils.c
-extern volatile uint8_t internal_int_sample_occured;
-extern uint16_t internal_int_sample_count;
-extern volatile uint8_t internal_int_log_occured;
-extern uint16_t internal_int_log_count;
+extern volatile uint8_t internal_int_occured;
+extern uint64_t internal_int_count;
 extern const uint8_t enc_pin_mask;
 extern volatile uint8_t external_int_occurred;
 extern uint16_t external_int_count;
-
-extern volatile uint8_t internal_int_occured;
-extern uint64_t internal_int_count;
 
 int main() {
     // initialize UART and printf wrapper
     UART_init(19200);
     printf_init();
 
+    // initialize timer that counts to get time with millis()
     timer_internal_init();
-
-    // initialize timer 1 for tempo di campionamento at 50Hz per fare il task
-    //timer_internal_sample_init();
-
-    // initialize timer 2 for logging on Serial at 0.5Hz
-    //timer_internal_log_init();
 
     // initialize timer 0 for pwm
     timer_pwm_init();
@@ -49,29 +39,24 @@ int main() {
 
     int target = 1000;
 
+    uint64_t prev_sample_time = 0;
+    uint64_t prev_log_time = 0;
+
     while (1) {
+        // when encoder signals external interrupt is triggered
         if (external_int_occurred) {
             external_int_occurred = 0; // reset flag
             read_encoder(); // do task
-            //printf("ex %d, in %d, pos %d\n", external_int_count, internal_int_count, pos);
-            //printf("%d %d\n", external_int_count, pos);
         }
-        if (internal_int_sample_occured) {
-            internal_int_sample_occured = 0; // reset flag
+        // every DELTA_T_MS = 20ms (at 50Hz) command gets generated and actuated
+        if (millis() > prev_sample_time + DELTA_T_MS) {
             PID(target); // do task
-            //printf("int1\n");
+            prev_sample_time = millis();
         }
-        if (internal_int_log_occured) {
-            internal_int_log_occured = 0; // reset flag
-            //printf("int2\n");
-            printf("ext %d, trg %d, pos %d, err %d, dtc %u, dir %d\n", external_int_count, target, pos, pos-target, OCR0A, dir);
+        // every DELTA_T_LOG_MS data gets logged on UART
+        if (millis() > prev_log_time + DELTA_T_LOG_MS) {
+            printf("ext %d, trg %d, pos %d, err %d, dtc %u, dir %d\n", external_int_count, target, pos, pos-target, OCR0A, dir); // do task
+            prev_log_time = millis();
         }
-        if (internal_int_occured) {
-            internal_int_occured = 0;
-            printf("%ld\n", internal_int_count);
-        }
-        
-        // blocca l'esecuzione a tempo indeterminato, si sblocca con un nuovo interrupt
-        sleep_cpu();
     }
 }
