@@ -56,5 +56,23 @@ int main() {
             printf("trg %d, pos %d, err %d, dtc %u, dir %d\n", target_pos, motor1.encoder->pos, target_pos - motor1.encoder->pos, OCR4A, motor1.encoder->dir);
             prev_log_time = millis();
         }
+
+        // attempt to fill buffer all at once and then send one byte at a time to not create a bottleneck with serial (doesnt work properly for now)
+        /*
+        // every DELTA_T_LOG_MS fill data logging buffer
+        if (millis() > prev_fill_buf_time + DELTA_T_FILL_BUF_MS) {
+            sprintf(log_buf, "trg %d, pos %d, err %d, dtc %u, dir %d\n",
+                                target_pos, motor1.encoder->pos, target_pos - motor1.encoder->pos, OCR4A, motor1.encoder->dir);
+            prev_fill_buf_time = millis();
+        }
+        // every DELTA_T_LOG_BYTE_MS log on UART a byte at a timeù
+        if (millis() > prev_log_time + DELTA_T_LOG_MS) {
+            if (*log_buf_pt) {
+                UART_putchar(*log_buf_pt);
+                log_buf_pt++;
+            }   
+            prev_log_time = millis();
+        }
+        */
     }
 }

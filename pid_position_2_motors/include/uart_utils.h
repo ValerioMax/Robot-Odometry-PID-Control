@@ -12,8 +12,9 @@ void    printf_init();
 
 void    UART_init();
 void    UART_putchar(uint8_t c);
-uint8_t UART_getchar();
-uint8_t UART_getstring(uint8_t* buf);
+uint8_t UART_getchar_polling();
+uint8_t UART_getstring_polling(uint8_t* buf);
+uint8_t *UART_getstring_int();
 void    UART_putstring(uint8_t *buf);
 
 #endif

@@ -30,8 +30,11 @@
 #define PCINT_1 1
 #define PCINT_2 2
 
-// tempo di logging su seriale 2000ms
+// log on UART
+//#define DELTA_T_FILL_BUF_MS 2000
 #define DELTA_T_LOG_MS 2000
+
+#define MAX_BUF_SIZE 200
 
 #endif
 

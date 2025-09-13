@@ -17,7 +17,7 @@ void UART_init(uint16_t baud) {
     // Enable TX e RX: ...
     //  RXEN0: abilita la UART a ricevere dati
     //  TXEN0: abilita la UART a trasmettere dati
-    //  RXCIE0: abilita il trigger di interrupt quando la UART ha ricevuto un data frame completo con successo 
+    //  RXCIE0: abilita il trigger di interrupt quando la UART ha ricevuto 1 byte completo (riempito il buffer di ricezione) con successo 
     UCSR0B = (1<<RXEN0) | (1<<TXEN0) | (1<<RXCIE0); // enable TX, RX, RX complete interrupt
 }
 
@@ -30,8 +30,9 @@ void UART_putchar(uint8_t c) {
     UDR0 = c;
 }
 
-uint8_t UART_getchar() {
-    // aspetta finché il buffer di ricezione è in fase di riempimento
+// POLLING getchar()
+uint8_t UART_getchar_polling() {
+    // aspetta finché il buffer di ricezione (1 byte) è in fase di riempimento
     // (devono ancora essere scritti tutti i bit del char in arrivo)
     while ( !(UCSR0A & (1<<RXC0)) );
 
@@ -39,25 +40,63 @@ uint8_t UART_getchar() {
     return UDR0;
 }
 
+// POLLING getstring()
 // legge stringa fino al successivo '\n' '\r' o 0
 // ritorna la size letta
-uint8_t UART_getstring(uint8_t* buf) {
+uint8_t UART_getstring_polling(uint8_t *buf) {
     uint8_t *b0 = buf;
 
     while (1) {
-        uint8_t c = UART_getchar();
+        uint8_t c = UART_getchar_polling();
         *buf = c;
         ++buf;
 
         if (c == 0)
             return buf - b0;
         if (c == '\n' || c == '\r') {
-            *buf = 0; // termina la stringa con '\0'
+            *buf = 0; // termina la stringa forzatamente con '\0'
             ++buf;
             return buf - b0;
         }
     }
 }
+
+// ON INTERRUPT getstring()
+// per flavour faccio tutto nella ISR. Per efficienza massima (ISR più corta) sarebbe meglio solo attivare una flag
+// e aggioranre rx_buffer nel main (come con gli altri interrupt che ho settato)
+volatile uint8_t rx_buffer[MAX_BUF_SIZE];
+volatile int rx_idx = 0;
+volatile int rx_string_ready = 0;
+
+ISR(USART0_RX_vect) {
+    char recv_byte = UDR0;
+    rx_buffer[rx_idx++] = recv_byte;
+
+    if (recv_byte == 0)
+        rx_string_ready = 1;
+    if (recv_byte == '\n' || recv_byte == '\r') {
+        rx_buffer[rx_idx] = 0; // termina la stringa forzatamente con '\0'
+        rx_string_ready = 1;
+        rx_idx = 0;
+    }
+}
+
+// sempre per flavour ritorna direttamente il puntatore alla stringa e non prende param (come per il polling)
+uint8_t *UART_getstring_int() {
+    if (rx_string_ready) {
+        cli();
+        rx_string_ready = 0;
+        sei();
+
+        return (uint8_t*) rx_buffer;
+        //memcpy(buf, rx_buffer, MAX_BUF_SIZE);
+    }
+
+    return NULL;
+}
+
+
+
 
 void UART_putstring(uint8_t *buf) {
     while (*buf) {
