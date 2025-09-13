@@ -1,7 +1,7 @@
 #include "uart_utils.h"
 #include "peripherals_utils.h"
 
-#include "motor.h"
+#include "robot.h"
 
 // from encoder.c
 extern Encoder encoder1;
@@ -26,17 +26,21 @@ int main() {
     // initialize timer that counts to get time with millis()
     timer_internal_init();
 
+    Robot robot;
+
     Encoder_init(&encoder1, PB0, PB2, PORT_B);
     Encoder_init(&encoder2, PB1, PB3, PORT_B);
     Motor_init(&motor1, PA1, PA3, PH3, &encoder1);
     Motor_init(&motor2, PA0, PA2, PH4, &encoder2);
 
-    int target_pos = 1000;
+    Robot_init(&robot, &motor1, &motor2);
 
     uint64_t prev_sample_time = 0;
     uint64_t prev_log_time = 0;
 
     while (1) {
+        Robot_get_commands(&robot);
+
         // when encoder signals external interrupt is triggered
         if (external_int_enc1_occurred) {
             external_int_enc1_occurred = 0;
@@ -48,14 +52,20 @@ int main() {
         }
         // every DELTA_T_MS = 20ms (at 50Hz) command gets generated and actuated
         if (millis() > prev_sample_time + DELTA_T_MS) {
-            Motor_PID_position(&motor1, target_pos);
+            Encoder_update_rpm(&encoder1, DELTA_T_MS);
+            //Encoder_update_rpm(&encoder2, DELTA_T_MS);
+            Motor_PID_position(&motor1);
+            //Motor_PID_position(&motor2);
             prev_sample_time = millis();
         }
         // every DELTA_T_LOG_MS data gets logged on UART
         if (millis() > prev_log_time + DELTA_T_LOG_MS) {
-            printf("trg %d, pos %d, err %d, dtc %u, dir %d\n", target_pos, motor1.encoder->pos, target_pos - motor1.encoder->pos, OCR4A, motor1.encoder->dir);
+            printf("trg %d, pos %d, err %d, u_pwm %u, dir %d, rpm %d\n", motor1.target_pos, motor1.encoder->pos, motor1.target_pos - motor1.encoder->pos, OCR4A, motor1.encoder->dir, motor1.encoder->rpm);
             prev_log_time = millis();
         }
+
+
+
 
         // attempt to fill buffer all at once and then send one byte at a time to not create a bottleneck with serial (doesnt work properly for now)
         /*

@@ -5,32 +5,18 @@
 #include "peripherals_utils.h"
 
 typedef struct {
-    int pos;
-    //int rpm;
-    int dir;
-
-    int port; // port of pin_a and pin_b (we assume they are in same port)
     int pin_a;
     int pin_b;
+    int port; // port of pin_a and pin_b (we assume they are in same port)
 
-    // forse dovrebbero stare in Motor
-    int target_pos;
-    int target_rpm;
-    int err_pos;
-    int err_rpm;
+    int pos;        // current measured rpm
+    int pos_prev;   // only used to compute rpm
+    int rpm;        // current measured rpm
+    int dir;        // current measured dir
 } Encoder;
 
 void    Encoder_init(Encoder *encoder, int pin_a, int pin_b, int port);
 void    Encoder_read(Encoder *encoder);
-// TODO
-/*
-void    Encoder_get_rpm
-void    Encoder_get_dir
-void    Encoder_get_target_pos(Encoder *encoder);
-void    Encoder_get_target_rpm(Encoder *encoder);
-void    Encoder_get_error_pos(Encoder *encoder);
-void    Encoder_get_error_rpm(Encoder *encoder);
-*/
-
+void    Encoder_update_rpm(Encoder *encoder, int time_passed_ms);
 
 //#endif

@@ -10,6 +10,10 @@ void Motor_init(Motor *motor, int in1_pin, int in2_pin, int pwm_pin, Encoder *en
     motor->in1_pin = in1_pin;
     motor->in2_pin = in2_pin;
     motor->pwm_pin = pwm_pin;
+    motor->target_pos = 0;
+    motor->target_rpm = 0;
+    motor->err_pos = 0;
+    motor->err_rpm = 0; 
     motor->encoder = encoder;
 
     // set in1_pin and in2_pin as output
@@ -18,9 +22,20 @@ void Motor_init(Motor *motor, int in1_pin, int in2_pin, int pwm_pin, Encoder *en
 
     // initialize pwm on pwm_pin
     pwm_TIMER4_init(pwm_pin);
+
+    motor->attached = 1;
+    motor->manual_control = 0;
+}
+
+// state 1 attach motor, state 2 detach motor
+void Motor_attach(Motor *motor, int state) {
+    motor->attached = state;
 }
 
 void Motor_set_speed(Motor *motor, int dir, int duty_cycle) {
+    if (!(motor->attached))
+        return ;
+
     const uint8_t in1_pin_mask = (1 << motor->in1_pin);
     const uint8_t in2_pin_mask = (1 << motor->in2_pin);
 
@@ -52,9 +67,15 @@ void Motor_set_speed(Motor *motor, int dir, int duty_cycle) {
     }
 }
 
-void Motor_PID_position(Motor *motor, int target_pos) {
+void Motor_PID_position(Motor *motor) {
+    if (motor->manual_control)
+        return ;
+
+    int target_pos = motor->target_pos;
+    int pos = motor->encoder->pos;
+
     // error
-    int e = target_pos - motor->encoder->pos;
+    int e = target_pos - pos;
 
     // derivative
     float de_dt = (e - e_prev) / (DELTA_T_MS / 1000.0);
@@ -74,9 +95,8 @@ void Motor_PID_position(Motor *motor, int target_pos) {
     float u_pwm = fabs(u);
 
     // cap it to max value
-    if(u_pwm > 255)
-        u_pwm = 255;
-    // SE E' MINORE DI 0? o -255?
+    if(u_pwm > MAX_PWM_TICKS)
+        u_pwm = MAX_PWM_TICKS;
 
     // motor direction
     int dir = 1; // motor direction 1: CW, -1: CCW, 0: still
@@ -85,6 +105,9 @@ void Motor_PID_position(Motor *motor, int target_pos) {
 
     // actuate command
     Motor_set_speed(motor, dir, u_pwm);
+
+    // update motor position error
+    motor->err_pos = e;
 
     // store previous error
     e_prev = e;

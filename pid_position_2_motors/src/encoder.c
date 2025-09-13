@@ -30,10 +30,13 @@ ISR(PCINT0_vect) {
 }
 
 void Encoder_init(Encoder *encoder, int pin_a, int pin_b, int port) {
-    encoder->pos = 0;
     encoder->pin_a = pin_a;
     encoder->pin_b = pin_b;
     encoder->port = port;
+    encoder->pos = 0;
+    encoder->pos_prev = 0;
+    encoder->rpm = 0;
+    encoder->dir = 0;
 
     // initialize external interrupt PCINT0
     const uint8_t mask = (1 << pin_a) | (1 << pin_b);
@@ -54,4 +57,10 @@ void Encoder_read(Encoder *encoder) {
         encoder->pos--;
         encoder->dir = -1;
     }       
+}
+
+void Encoder_update_rpm(Encoder *encoder, int time_passed_ms) {
+    // TODO: maybe use abs() cause dir is already specified
+    encoder->rpm = (encoder->pos - encoder->pos_prev) / (time_passed_ms / 1000.0);
+    encoder->pos_prev = encoder->pos;
 }

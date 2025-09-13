@@ -30,9 +30,12 @@
 #define PCINT_1 1
 #define PCINT_2 2
 
-// log on UART
+// tempo di "campionamento" del log on UART
 //#define DELTA_T_FILL_BUF_MS 2000
 #define DELTA_T_LOG_MS 2000
+
+// tempo di campionamento 20ms per avere freq campionamento 50Hz
+#define DELTA_T_MS 20
 
 #define MAX_BUF_SIZE 200
 

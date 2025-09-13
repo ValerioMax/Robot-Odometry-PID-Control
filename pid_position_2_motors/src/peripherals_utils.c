@@ -66,27 +66,40 @@ void external_int_PCINT_init(const uint8_t pin_mask, int port) {
 
 // [BEGIN] PWM ---------------------------------------------------------
 void pwm_TIMER4_init(int pin) {
+    
+    // set Waveform Generation Mode 14 (Fast PWM with TOP = ICR4)
+    TCCR4A |= (1 << WGM41);
+    TCCR4B |= (1 << WGM43) | (1 << WGM42);
+
+    // set the TOP value to set resolution 2^16-1 = 65535 --> 16bit resolution
+    ICR4 = 65535;
+
+    // set  prescaler to 1 --> frequency = clock / (prescaler * ICR4) = 16MHz / (1 * 65535) = 244Hz
+    TCCR4B |= (1 << CS40);
+    
+    /*
     TCCR4A |= (1 << WGM41) | (1 << WGM40); // set Fast PWM mode
     TCCR4B |= (1 << CS41) | (1 << CS40); // set prescaler to 64
+    */
 
     // Setting del canale
     switch (pin) {
         case PH3:
-            TCCR4A |= (1 << COM4A1);
+            printf("hello, %d\n", PH3);
+            TCCR4A |= (1 << COM4A1); // set non-inverting PWM on OC4A (pin 6)
+            OCR4A = 0; // initial duty cycle at 0
             break;
         case PH4:
-            TCCR4A |= (1 << COM4B1);
+            TCCR4A |= (1 << COM4B1); // set non-inverting PWM on OC4B (pin 7)
+            OCR4B = 0; // initial duty cycle at 0
             break;
         case PH5:
-            TCCR4A |= (1 << COM4C1);
+            TCCR4A |= (1 << COM4C1); // set non-inverting PWM on OC4C (pin 8)
+            OCR4C = 0; // initial duty cycle at 0
+            break;
+        default:
             break;
     }
-    
-    // Setting dell'OCR 
-    // initial duty cycle at 0
-    OCR4A = 0;
-    OCR4B = 0;
-    OCR4C = 0;
 
     // Setting del pin come output
     const uint8_t mask = (1 << pin);
