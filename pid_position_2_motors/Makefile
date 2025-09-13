@@ -2,7 +2,7 @@ SRC_DIR = src
 BUILD_DIR = build
 TOOLS_DIR = tools
 
-OBJS = $(BUILD_DIR)/uart_utils.o $(BUILD_DIR)/motor_utils.o $(BUILD_DIR)/peripherals_utils.o
+OBJS = $(BUILD_DIR)/uart_utils.o $(BUILD_DIR)/peripherals_utils.o $(BUILD_DIR)/motor.o $(BUILD_DIR)/encoder.o
 
 BINS = $(BUILD_DIR)/$(BIN_NAME).elf
 

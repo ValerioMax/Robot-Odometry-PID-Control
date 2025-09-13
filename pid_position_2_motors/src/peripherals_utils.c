@@ -1,3 +1,4 @@
+#include "shared_types.h"
 #include "peripherals_utils.h"
 
 // [BEGIN] INTERNAL INTERRUPT ------------------------------------------
@@ -32,21 +33,62 @@ uint64_t millis() {
 }
 // [END] ---------------------------------------------------------------
 
+// [BEGIN] EXTERNAL INTERRUPT PCINT ------------------------------------
+void external_int_PCINT_init(const uint8_t pin_mask, int port) {
+    // switch on every port with a PCINT
+    switch (port) {
+        // PCINT0 port
+        case PORT_B:
+            //set pin_mask pins as input
+            DDRB &= ~pin_mask;
+
+            //enable pull up resistors
+            PORTB |= pin_mask;
+
+            // set interrupt on change, looking up PCMSK0
+            PCICR |= (1 << PCIE0);
+
+            // set some of the PCINT0 group pins to trigger an interrupt on state change
+            PCMSK0 |= pin_mask;
+
+            // enable global interrupts
+            sei();
+            break;
+        // PCINT1 port
+        case PORT_J:
+            break;
+        // PCINT2 port
+        case PORT_K:
+            break;
+    }
+}
+// [END] ---------------------------------------------------------------
+
 // [BEGIN] PWM ---------------------------------------------------------
-// inverted logic (?) perchè pwm va al contrario
-// COM0A1 (non-inverting mode for OC0A), WGM01 and WGM00 (Fast PWM mode)
-#define TCCRA_MASK (1 << COM4A1) | (1 << WGM41) | (1 << WGM40)
-#define TCCRB_MASK (1 << CS41) | (1 << CS40) // Set prescaler to 64
+void pwm_TIMER4_init(int pin) {
+    TCCR4A |= (1 << WGM41) | (1 << WGM40); // set Fast PWM mode
+    TCCR4B |= (1 << CS41) | (1 << CS40); // set prescaler to 64
 
-void timer_pwm_PH_init(int pin) {
-    TCCR4A = TCCRA_MASK;
-    TCCR4B = TCCRB_MASK;
-
+    // Setting del canale
+    switch (pin) {
+        case PH3:
+            TCCR4A |= (1 << COM4A1);
+            break;
+        case PH4:
+            TCCR4A |= (1 << COM4B1);
+            break;
+        case PH5:
+            TCCR4A |= (1 << COM4C1);
+            break;
+    }
+    
     // Setting dell'OCR 
     // initial duty cycle at 0
     OCR4A = 0;
+    OCR4B = 0;
+    OCR4C = 0;
 
-    // Setting del pin in output (PD6)
+    // Setting del pin come output
     const uint8_t mask = (1 << pin);
     DDRH |= mask;
 }

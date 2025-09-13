@@ -1,7 +1,5 @@
-#include <util/delay.h>
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <avr/sleep.h>
+#ifndef PERIPHERALS_UTILS_H
+#define PERIPHERALS_UTILS_H
 
 #include "shared_types.h"
 
@@ -9,11 +7,10 @@
 void        timer_internal_init();
 uint64_t    millis();
 
-// EXTERNAL INTERRUPT;
-void        external_int_init();
+// EXTERNAL INTERRUPT
+void        external_int_PCINT_init(const uint8_t pin_mask, int port);
 
 // PWM
-#define TCCRA_MASK (1 << COM0A1) | (1 << WGM01) | (1 << WGM00)
-#define TCCRB_MASK (1 << CS01) | (1 << CS00) // Set prescaler to 64
+void        pwm_TIMER4_init(int pin);
 
-void        timer_pwm_PH_init(int pin);
+#endif
