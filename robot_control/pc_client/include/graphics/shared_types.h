@@ -2,8 +2,24 @@
 #ifndef SHARED_TYPES_H
 # define SHARED_TYPES_H
 
+# include <stdint.h>
+# include <stdlib.h>
 # include <math.h>
 # include <stdio.h>
+# include <unistd.h>
+# include <errno.h>
+
+typedef struct s_sample {
+    int value;
+    long timestamp;
+} t_sample;
+
+typedef struct s_info {
+    double time_min;
+    double time_max;
+    double time_range;
+    int value_max;
+} t_info;
 
 # define NUM_SAMPLES 10
 # define MAX_SAMPLE_VALUE 500 // TODO cambiare questo valore costante
@@ -18,22 +34,5 @@
 # define ORIGIN_Y FRAME_HEIGHT / 2
 # define RECT_X (FRAME_WIDTH - 2 * PADDING_X) / 10
 # define RECT_Y (FRAME_HEIGHT - 2 * PADDING_Y) / 10
-
-typedef struct s_sample {
-    int value;
-    long timestamp;
-} t_sample;
-
-typedef struct s_info {
-    double time_min;
-    double time_max;
-    double time_range;
-    int value_max;
-} t_info;
-
-typedef struct s_sample_queue {
-    t_sample *sample;
-    t_sample_queue *next;
-} t_sample_queue;
 
 #endif

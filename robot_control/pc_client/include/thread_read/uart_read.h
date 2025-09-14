@@ -1,11 +1,15 @@
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <termios.h>
+#ifndef UART_READ_H
+# define UART_READ_H
 
-#define MAX_BUFFER_SIZE 256
+# include <string.h>
+# include <fcntl.h>
+# include <termios.h>
+
+# include "shared_types.h"
+
+# define MAX_BUFFER_SIZE 256
 
 int uart_init(const char *tty_device, int mode, int baud, int blocking, int timeout);
 int uart_readline(int serial_port, char *buf);
+
+#endif

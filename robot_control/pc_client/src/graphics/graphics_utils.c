@@ -13,7 +13,7 @@ void my_mlx_pixel_put(t_img *img, int x, int y, int color) {
 	*(unsigned int*)dst = color;
 }
 
-void init_window(t_windata *data) {
+void window_init(t_windata *data) {
     // initialize graphical system, identified by void *mlx
     data->mlx = mlx_init();
 
@@ -106,10 +106,10 @@ void interpolate_and_draw(t_img *img, int prev_x, int prev_y, int curr_x, int cu
 	*/
 }
 
-void draw_data(t_sample *sample_data[], t_img *img, t_info *axis_info) {
+void draw_data(CircularBuffer *cbuf, t_img *img, t_info *axis_info) {
 	draw_grid(img);
 	
-	if (!sample_data)
+	if (!cbuf)
 		return ;
 	
 	if (!axis_info->time_range)
@@ -120,16 +120,16 @@ void draw_data(t_sample *sample_data[], t_img *img, t_info *axis_info) {
 	int prev_value = 0;
 
 	for (int i = 0; i < NUM_SAMPLES; i++) {
-		t_sample *sample = sample_data[i];
+		t_sample sample = cbuf->samples[cbuf->head + i]; //sample_data[i];
 	
-		if (sample) {
+		if (&sample) {
 			// normilize timestamp respect to current time_range
 			//int norm_time = (int) ((sample->timestamp / axis_info->time_range) * PLANE_WIDTH);
 			// normalize value respect to a maximum fixed by myself
 			//int norm_value = (int) (((float) sample->value / axis_info->value_max) * (PLANE_HEIGHT / 2));
 
-			int mapped_time = (int) map(sample->timestamp, axis_info->time_min, axis_info->time_max, ORIGIN_X, PLANE_WIDTH + ORIGIN_X);
-			int mapped_value = (int) map(sample->value, -axis_info->value_max, axis_info->value_max, PLANE_HEIGHT + PADDING_Y, PADDING_Y);
+			int mapped_time = (int) map(sample.timestamp, axis_info->time_min, axis_info->time_max, ORIGIN_X, PLANE_WIDTH + ORIGIN_X);
+			int mapped_value = (int) map(sample.value, -axis_info->value_max, axis_info->value_max, PLANE_HEIGHT + PADDING_Y, PADDING_Y);
 
 			interpolate_and_draw(img, prev_time, prev_value, mapped_time, mapped_value);
 
@@ -146,11 +146,11 @@ void draw_data(t_sample *sample_data[], t_img *img, t_info *axis_info) {
 	}
 }
 
-void plot_data(t_sample *sample_data[], t_windata *windata, t_info *axis_info) {
+void plot_data(CircularBuffer *cbuf, t_windata *windata, t_info *axis_info) {
 	// everytime create a new image in order to completely cover previous frame
 	new_image_init(windata);
 
-	draw_data(sample_data, &windata->img, axis_info);
+	draw_data(cbuf, &windata->img, axis_info);
 
 	// draw the image pixels on the window
 	mlx_put_image_to_window(windata->mlx, windata->win, windata->img.img, 0, 0);

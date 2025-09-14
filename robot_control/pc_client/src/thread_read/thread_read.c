@@ -21,10 +21,13 @@ void* thread_read(void* args) {
     t_windata windata;
     t_info axis_info;
     //t_sample *sample_data[NUM_SAMPLES]; // TODO ma poi perche cazz l'avevo fatta t_sample *[] e non semplicemente t_sample *
-    t_sample_queue sample_queue;
+    CircularBuffer cbuf;
 
     // init window for plotting
-    init_window(&windata);
+    window_init(&windata);
+
+    // init circular buffer
+    cb_init(&cbuf, NUM_SAMPLES);
 
     int serial_port = uart_init(TTY_DEVICE_NAME, O_RDWR, B19200, 0, 1); // blocking = 0, timeout = 1 --> 1*0.1s = 0.1s 
 
@@ -50,17 +53,20 @@ void* thread_read(void* args) {
         //     sample_idx++;
         //     printf("IDX %d\n", sample_idx);
         // }
+
+        if (recv_bytes > 0) {
+            fill_one_sample(&cbuf, line);
+        }
         
         // plot data if DELTA_T_PLOT_MS has passed anf NUM_SAMPLES was collected
-        if (millis() > prev_plot_time_ms + DELTA_T_PLOT_MS && sample_idx >= NUM_SAMPLES) { // TODO maybe i can take off idx >= NUM_SAMPLES
-            printf("enterd!!!!\n");
+        if (millis() > prev_plot_time_ms + DELTA_T_PLOT_MS) {
             //get_data_from_tsv(sample_data, fd);
             
-            get_axis_info(sample_data, &axis_info);
+            get_axis_info(&cbuf, &axis_info);
 
-            plot_data(sample_data, &windata, &axis_info);
+            plot_data(&cbuf, &windata, &axis_info);
 
-            // // reset sample data vector and idx
+            // // // reset sample data vector and idx
             // free_sample_data(sample_data, NUM_SAMPLES); // TODO: should only clean it, not totally deallocate it
             // sample_idx = 0;
 
@@ -73,7 +79,7 @@ void* thread_read(void* args) {
     }
     
     // deallocate dynamic data
-    free_sample_data(sample_data, NUM_SAMPLES);
+    cb_destroy(&cbuf);
 
     // close the port
     close(serial_port);
