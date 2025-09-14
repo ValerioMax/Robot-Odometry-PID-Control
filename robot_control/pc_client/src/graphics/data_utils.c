@@ -46,9 +46,7 @@ void read_line(int fd, t_sample *sample_data) {
     //printf("%ld %d\n", sample_data->timestamp, sample_data->value);
 }
 
-void get_data_from_tsv(t_sample *sample_data[], const char *filename) {
-    int fd = open(filename, O_RDONLY);
-
+void get_data_from_tsv(t_sample *sample_data[], int fd) {
     // read last NUM_ROWS of tsv file
     for (int i = 0; i < NUM_SAMPLES; i++){
         read_line(fd, sample_data[i]); //TODO capire se la read legge dall'ultimo byte letto alla chiamata precedente oppure si resetta dall'inizio del file
@@ -67,4 +65,53 @@ void get_axis_info(t_sample *sample_data[], t_info *axis_info) {
 
     axis_info->value_max = MAX_SAMPLE_VALUE; // TODO change this value
     //printf("%lf %lf %lf\n", axis_info->time_min, axis_info->time_max, axis_info->time_range);
+}
+
+
+
+
+
+
+
+
+
+
+
+void sample_queue_init(t_sample_queue *sample_data, int len) {
+    for (int i = 0; i < len; i++)
+        sample_data[i] = malloc(sizeof(t_sample));
+}
+
+void free_sample_queue(t_sample *sample_data, int len) {
+    if (!sample_data)
+        return ;
+
+    for (int i = 0; i < len; i++) {
+        if (sample_data[i]) {
+            free(sample_data[i]);
+            sample_data[i] = NULL;
+        }
+    }
+}
+
+
+void fill_one_sample(t_sample *sample_data, char *line) {
+    if (!line)
+        return ;
+
+    printf("%s\n", line);
+
+    // parse line
+    char *token;
+
+    token = strtok(line, "\t "); // TODO con "\t " funziona, perche?? (dovrebbe andare anche solo con "\t")
+    if (token) sample_data->timestamp = atol(token);
+    token = strtok(NULL, "\t ");
+    if (token) sample_data->value = atoi(token);
+
+    // DEBUGGOOOOOS
+    sample_data->timestamp = millis();
+    sample_data->value = 135;
+
+    printf("%ld %d\n", sample_data->timestamp, sample_data->value);
 }

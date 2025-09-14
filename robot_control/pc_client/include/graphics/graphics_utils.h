@@ -28,4 +28,8 @@ void		init_window(t_windata *data);
 void		draw_data(t_sample *sample_data[], t_img *img, t_info *axis_info);
 void		draw_info(void *mlx, void *win, t_info *axis_info);
 
+void new_image_init(t_windata *data);
+void		plot_data(t_sample *sample_data[], t_windata *windata, t_info *axis_info);
+
+
 #endif

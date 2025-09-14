@@ -8,4 +8,4 @@
 #define MAX_BUFFER_SIZE 256
 
 int uart_init(const char *tty_device, int mode, int baud, int blocking, int timeout);
-void uart_readline(int serial_port);
+int uart_readline(int serial_port, char *buf);

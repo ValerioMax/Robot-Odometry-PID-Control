@@ -20,7 +20,11 @@ void init_window(t_windata *data) {
     // initialize window
 	data->win = mlx_new_window(data->mlx, FRAME_WIDTH, FRAME_HEIGHT, "prova");
 
-    // initiate image and associate it with the window
+	new_image_init(data);
+}
+
+void new_image_init(t_windata *data) {
+	// initiate image and associate it with the window
     data->img.img = mlx_new_image(data->mlx, FRAME_WIDTH, FRAME_HEIGHT);
 
     // img.pixels is the buffer containg all the pixels data (in RGBA every pixel has 4 bytes)
@@ -140,4 +144,17 @@ void draw_data(t_sample *sample_data[], t_img *img, t_info *axis_info) {
 			//my_mlx_pixel_put(img, mapped_time, mapped_value, 0x0FFFFF00);
 		}
 	}
+}
+
+void plot_data(t_sample *sample_data[], t_windata *windata, t_info *axis_info) {
+	// everytime create a new image in order to completely cover previous frame
+	new_image_init(windata);
+
+	draw_data(sample_data, &windata->img, axis_info);
+
+	// draw the image pixels on the window
+	mlx_put_image_to_window(windata->mlx, windata->win, windata->img.img, 0, 0);
+
+	// for reasons strings have to be drawn after the rest
+	draw_info(windata->mlx, windata->win, axis_info);
 }

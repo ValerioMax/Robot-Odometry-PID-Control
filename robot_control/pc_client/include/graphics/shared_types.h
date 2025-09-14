@@ -5,7 +5,7 @@
 # include <math.h>
 # include <stdio.h>
 
-# define NUM_SAMPLES 300
+# define NUM_SAMPLES 10
 # define MAX_SAMPLE_VALUE 500 // TODO cambiare questo valore costante
 
 # define FRAME_WIDTH 1200
@@ -30,5 +30,10 @@ typedef struct s_info {
     double time_range;
     int value_max;
 } t_info;
+
+typedef struct s_sample_queue {
+    t_sample *sample;
+    t_sample_queue *next;
+} t_sample_queue;
 
 #endif

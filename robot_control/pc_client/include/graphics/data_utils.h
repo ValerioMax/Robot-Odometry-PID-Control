@@ -16,7 +16,8 @@
 
 void sample_data_init(t_sample *sample_data[], int len);
 void free_sample_data(t_sample *sample_data[], int len);
-void get_data_from_tsv(t_sample *sample_data[], const char *filename);
+void get_data_from_tsv(t_sample *sample_data[], int fd);
 void get_axis_info(t_sample *sample_data[], t_info *axis_info);
+void fill_one_sample(t_sample *sample_data, char *line);
 
 #endif

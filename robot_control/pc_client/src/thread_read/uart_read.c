@@ -48,8 +48,7 @@ int uart_init(const char *tty_device, int mode, int baud, int blocking, int time
     return serial_port;
 }
 
-void uart_readline(int serial_port) {
-    char buf[MAX_BUFFER_SIZE];
+int uart_readline(int serial_port, char *buf) {
     int read_bytes = 0;
     int ret = 0;
 
@@ -65,6 +64,9 @@ void uart_readline(int serial_port) {
     // terminate string to use strtok()
     buf[read_bytes - 1] = '\0';
 
-    if (read_bytes > 0)
+    if (read_bytes > 0) {
         printf("received: %s\n", buf);
+    }
+
+    return read_bytes;
 }
