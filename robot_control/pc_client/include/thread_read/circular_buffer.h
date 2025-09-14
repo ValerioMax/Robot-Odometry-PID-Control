@@ -17,8 +17,11 @@ void    cb_init(CircularBuffer *cb, int size);
 void    cb_print(CircularBuffer *cb);
 int     cb_is_empty(CircularBuffer *cb);
 int     cb_is_full(CircularBuffer *cb);
-void    enqueue(CircularBuffer *cb, t_sample value);
-void    dequeue(CircularBuffer *cb);
+void    cb_enqueue(CircularBuffer *cb, t_sample value);
+void    cb_dequeue(CircularBuffer *cb);
 void    cb_destroy(CircularBuffer *cb);
+int     cb_get_num_elements(CircularBuffer *cb);
+int     cb_get_idx(CircularBuffer *cb, int idx);
+int     cb_get_idx_last_elem(CircularBuffer *cb);
 
 #endif

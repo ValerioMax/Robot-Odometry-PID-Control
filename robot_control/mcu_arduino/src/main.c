@@ -60,7 +60,8 @@ int main() {
         }
         // every DELTA_T_LOG_MS data gets logged on UART
         if (millis() > prev_log_time + DELTA_T_LOG_MS) {
-            printf("trg %d, pos %d, err %d, u_pwm %u, dir %d, rpm %d\n", motor1.target_pos, motor1.encoder->pos, motor1.target_pos - motor1.encoder->pos, OCR4A, motor1.encoder->dir, motor1.encoder->rpm);
+            //printf("trg %d, pos %d, err %d, u_pwm %u, dir %d, rpm %d\n", motor1.target_pos, motor1.encoder->pos, motor1.target_pos - motor1.encoder->pos, OCR4A, motor1.encoder->dir, motor1.encoder->rpm);
+            printf("%d\n", motor1.encoder->pos);
             prev_log_time = millis();
         }
 

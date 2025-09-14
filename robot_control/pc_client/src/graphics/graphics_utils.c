@@ -119,9 +119,17 @@ void draw_data(CircularBuffer *cbuf, t_img *img, t_info *axis_info) {
 	int prev_time = 0;
 	int prev_value = 0;
 
-	for (int i = 0; i < NUM_SAMPLES; i++) {
-		t_sample sample = cbuf->samples[cbuf->head + i]; //sample_data[i];
-	
+	int num_elements = cb_get_num_elements(cbuf);
+
+	for (int i = 0; i < num_elements; i++) {
+		
+
+		int idx = cb_get_idx(cbuf, i);
+		
+		//printf("num elem: %d, idx: %d, i: %d\n", num_elements, idx, i);
+
+		t_sample sample = cbuf->samples[idx]; //sample_data[i];
+
 		if (&sample) {
 			// normilize timestamp respect to current time_range
 			//int norm_time = (int) ((sample->timestamp / axis_info->time_range) * PLANE_WIDTH);
@@ -133,6 +141,7 @@ void draw_data(CircularBuffer *cbuf, t_img *img, t_info *axis_info) {
 
 			interpolate_and_draw(img, prev_time, prev_value, mapped_time, mapped_value);
 
+			// for interpolation
 			prev_time = mapped_time;
 			prev_value = mapped_value;
 

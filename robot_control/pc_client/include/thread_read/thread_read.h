@@ -7,8 +7,6 @@
 # include "uart_read.h"
 # include "circular_buffer.h"
 
-# include <sys/time.h>
-
 # define TTY_DEVICE_NAME "/dev/ttyACM0"
 # define DELTA_T_PLOT_MS 50 
 

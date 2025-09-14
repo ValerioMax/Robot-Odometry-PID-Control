@@ -8,24 +8,28 @@ void cb_init(CircularBuffer* cb, int size) {
 }
 
 void cb_print(CircularBuffer *cb) {
-    for (int i = 0; i < cb->size; i++) {
-        int time_stamp = cb->samples[cb->head + i].timestamp;
-        int value = cb->samples[cb->head + i].value;
-        printf("s%d(%d, %d) ", i, time_stamp, value);
+    int num_elems = cb_get_num_elements(cb);
+
+    for (int i = 0; i < num_elems; i++) {
+        int idx = cb_get_idx(cb, i);
+
+        long long time_stamp = cb->samples[idx].timestamp;
+        int value = cb->samples[idx].value;
+        printf("e%d(%lld, %d) ", i, time_stamp, value);
     }
     printf("\n");
 }
 
-int is_empty(CircularBuffer* cb) {
+int cb_is_empty(CircularBuffer* cb) {
     return cb->head == cb->tail;
 }
 
-int is_full(CircularBuffer* cb) {
+int cb_is_full(CircularBuffer* cb) {
     return ((cb->tail + 1) % cb->size) == cb->head;
 }
 
-void enqueue(CircularBuffer* cb, t_sample value) {
-    if (is_full(cb)) {
+void cb_enqueue(CircularBuffer* cb, t_sample value) {
+    if (cb_is_full(cb)) {
         printf("Buffer is full. Cannot enqueue\n");
         return;
     }
@@ -34,8 +38,8 @@ void enqueue(CircularBuffer* cb, t_sample value) {
     //printf("Enqueued: %d\n", value);
 }
 
-void dequeue(CircularBuffer* cb) {
-    if (is_empty(cb)) {
+void cb_dequeue(CircularBuffer* cb) {
+    if (cb_is_empty(cb)) {
         printf("Buffer is empty. Cannot dequeue\n");
         return ;
     }
@@ -46,4 +50,16 @@ void dequeue(CircularBuffer* cb) {
 
 void cb_destroy(CircularBuffer* cb) {
     free(cb->samples);
+}
+
+int cb_get_num_elements(CircularBuffer *cb) {
+    return (cb->tail - cb->head + cb->size) % cb->size;
+}
+
+int cb_get_idx(CircularBuffer *cb, int idx) {
+    return (cb->head + idx) % cb->size;
+}
+
+int cb_get_idx_last_elem(CircularBuffer *cb) {
+    return (cb->tail - 1 + cb->size) % cb->size;
 }

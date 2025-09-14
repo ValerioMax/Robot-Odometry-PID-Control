@@ -11,13 +11,13 @@
 
 typedef struct s_sample {
     int value;
-    long timestamp;
+    long long timestamp;
 } t_sample;
 
 typedef struct s_info {
-    double time_min;
-    double time_max;
-    double time_range;
+    long long time_min;
+    long long time_max;
+    long long time_range;
     int value_max;
 } t_info;
 

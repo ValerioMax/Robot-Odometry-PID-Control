@@ -4,14 +4,14 @@ int uart_init(const char *tty_device, int mode, int baud, int blocking, int time
     // open serial port
     int serial_port = open(tty_device, mode);
     if (serial_port < 0) {
-        printf("Error %i from open: %s\n", errno, strerror(errno));
+        printf("Error uart_init(): %s\n", strerror(errno));
         return 1;
     }
 
     // configure port settings
     struct termios tty;
     if (tcgetattr(serial_port, &tty) != 0) {
-        printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
+        printf("Error uart_init(): %s\n", strerror(errno));
         return 1;
     }
 
