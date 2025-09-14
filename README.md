@@ -51,3 +51,8 @@ il common gnd tra arduino e alimentazione (serve?)
 
 RICORDA DI FARE UN CLAMP DI e_integral (non solo di u_pwm) perché non voglio che aumenti all'infinito se c'è qualche problema
 altrimenti poi non si ristabilizza più
+
+-------------------------------
+
+Per usare mlx installare prima:
+sudo apt-get update && sudo apt-get install xorg libxext-dev zlib1g-dev libbsd-dev
