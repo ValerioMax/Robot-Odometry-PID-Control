@@ -4,11 +4,11 @@
 # include "shared_types.h"
 # include "graphics_utils.h"
 # include "data_utils.h"
-# include "uart_read.h"
+# include "serial_read.h"
 # include "circular_buffer.h"
 
 # define TTY_DEVICE_NAME "/dev/ttyACM0"
-# define DELTA_T_PLOT_MS 50 
+# define DELTA_T_PLOT_MS 1000 
 
 void *thread_read(void* args);
 

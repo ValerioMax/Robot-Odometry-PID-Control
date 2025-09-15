@@ -1,9 +1,6 @@
 #ifndef CIRCULAR_BUFFER_H
 # define CIRCULAR_BUFFER_H
 
-# include <stdio.h>
-# include <stdlib.h>
-
 # include "shared_types.h"
 
 typedef struct {

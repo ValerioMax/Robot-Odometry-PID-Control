@@ -13,12 +13,12 @@ void my_mlx_pixel_put(t_img *img, int x, int y, int color) {
 	*(unsigned int*)dst = color;
 }
 
-void window_init(t_windata *data) {
+void window_init(t_windata *data, const char *win_name) {
     // initialize graphical system, identified by void *mlx
     data->mlx = mlx_init();
 
     // initialize window
-	data->win = mlx_new_window(data->mlx, FRAME_WIDTH, FRAME_HEIGHT, "prova");
+	data->win = mlx_new_window(data->mlx, FRAME_WIDTH, FRAME_HEIGHT, (char *) win_name);
 
 	new_image_init(data);
 }
@@ -39,8 +39,8 @@ void draw_info(void *mlx, void *win, t_info *axis_info) {
 	int norm_value;
 
 	// increments for numbers in the axis
-	int x_norm_increment = (int) ((axis_info->time_range / PLANE_WIDTH) * RECT_X);
-	int y_norm_increment = (int) (((float) axis_info->value_max / (PLANE_HEIGHT / 2)) * RECT_Y);
+	int x_norm_increment = (int) (((float) axis_info->time_range / PLANE_WIDTH) * RECT_X);
+	int y_norm_increment = (int) (((float) axis_info->value_max / (PLANE_HEIGHT / 2.0)) * RECT_Y);
 
 	// values on y-axis (positive)
 	norm_value = 0;
@@ -77,6 +77,7 @@ void draw_grid(t_img *img) {
 			my_mlx_pixel_put(img, j, i, 0x0FFFFFFF);
 }
 
+// maps value from scale1 to scale2
 double map(double value, double min1, double max1, double min2, double max2) {
 	double norm_value = (value - min1) / (max1 - min1);
 	return min2 + (max2 - min2) * norm_value;
@@ -84,12 +85,17 @@ double map(double value, double min1, double max1, double min2, double max2) {
 
 // interpolate previous point with current to make a continous curve
 void interpolate_and_draw(t_img *img, int prev_x, int prev_y, int curr_x, int curr_y) {
+	// its first iteration and we are before ORIGIN_X
+	if (prev_x == 0)
+		return ;
+	
 	while (prev_x < curr_x) {
 		my_mlx_pixel_put(img, prev_x, prev_y, 0x0FFFFF00);
 		prev_x++;
 	}
 
 	// True interpolation but it difficult (gotta compute slope, ecc.)
+	// TODO: work in progress
 	/*
 	if (curr_y > prev_y)
 		for (int i = prev_y; i < curr_y; i++) {
@@ -116,40 +122,35 @@ void draw_data(CircularBuffer *cbuf, t_img *img, t_info *axis_info) {
 		return ;
 
 	//int curr_max = HEIGHT / 10;
-	int prev_time = 0;
-	int prev_value = 0;
+
+	int prev_mapped_time = 0;
+	int prev_mapped_value = 0;
 
 	int num_elements = cb_get_num_elements(cbuf);
 
+	// scans buffer and plot its content
 	for (int i = 0; i < num_elements; i++) {
-		
 
+		// since its a circular buffer gets index respective to the i-th element
 		int idx = cb_get_idx(cbuf, i);
-		
-		//printf("num elem: %d, idx: %d, i: %d\n", num_elements, idx, i);
 
-		t_sample sample = cbuf->samples[idx]; //sample_data[i];
+		t_sample sample = cbuf->samples[idx];
 
 		if (&sample) {
-			// normilize timestamp respect to current time_range
-			//int norm_time = (int) ((sample->timestamp / axis_info->time_range) * PLANE_WIDTH);
-			// normalize value respect to a maximum fixed by myself
-			//int norm_value = (int) (((float) sample->value / axis_info->value_max) * (PLANE_HEIGHT / 2));
-
+			// maps values to pixel coordinates
 			int mapped_time = (int) map(sample.timestamp, axis_info->time_min, axis_info->time_max, ORIGIN_X, PLANE_WIDTH + ORIGIN_X);
 			int mapped_value = (int) map(sample.value, -axis_info->value_max, axis_info->value_max, PLANE_HEIGHT + PADDING_Y, PADDING_Y);
 
-			interpolate_and_draw(img, prev_time, prev_value, mapped_time, mapped_value);
+			interpolate_and_draw(img, prev_mapped_time, prev_mapped_value, mapped_time, mapped_value);
 
 			// for interpolation
-			prev_time = mapped_time;
-			prev_value = mapped_value;
+			prev_mapped_time = mapped_time;
+			prev_mapped_value = mapped_value;
 
 			// normalize value respect to a maximum value got so far
 			//int norm_value = (sample->value / curr_max) * HEIGHT;
 			//if (sample->value > curr_max)
 			//	curr_max = sample->value;
-
 			//my_mlx_pixel_put(img, mapped_time, mapped_value, 0x0FFFFF00);
 		}
 	}

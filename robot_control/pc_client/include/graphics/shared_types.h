@@ -24,15 +24,4 @@ typedef struct s_info {
 # define NUM_SAMPLES 10
 # define MAX_SAMPLE_VALUE 500 // TODO cambiare questo valore costante
 
-# define FRAME_WIDTH 1200
-# define FRAME_HEIGHT 700
-# define PADDING_X 60
-# define PADDING_Y 20
-# define PLANE_WIDTH (FRAME_WIDTH - 2 * PADDING_X)
-# define PLANE_HEIGHT (FRAME_HEIGHT - 2 * PADDING_Y)
-# define ORIGIN_X PADDING_X
-# define ORIGIN_Y FRAME_HEIGHT / 2
-# define RECT_X (FRAME_WIDTH - 2 * PADDING_X) / 10
-# define RECT_Y (FRAME_HEIGHT - 2 * PADDING_Y) / 10
-
 #endif

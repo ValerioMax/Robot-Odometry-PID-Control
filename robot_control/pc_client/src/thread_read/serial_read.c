@@ -1,6 +1,6 @@
-#include "uart_read.h"
+#include "serial_read.h"
 
-int uart_init(const char *tty_device, int mode, int baud, int blocking, int timeout) {
+int serial_init(const char *tty_device, int mode, int baud, int blocking, int timeout) {
     // open serial port
     int serial_port = open(tty_device, mode);
     if (serial_port < 0) {
@@ -48,7 +48,7 @@ int uart_init(const char *tty_device, int mode, int baud, int blocking, int time
     return serial_port;
 }
 
-int uart_readline(int serial_port, char *buf) {
+int serial_readline(int serial_port, char *buf) {
     int read_bytes = 0;
     int ret = 0;
 
@@ -65,7 +65,7 @@ int uart_readline(int serial_port, char *buf) {
     buf[read_bytes - 1] = '\0';
 
     if (read_bytes > 0) {
-        printf("received: %s\n", buf);
+        printf("received: %s\n", buf); // DEBUG
     }
 
     return read_bytes;
