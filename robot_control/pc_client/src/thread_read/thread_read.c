@@ -1,9 +1,11 @@
 #include "thread_read.h"
 
-// from data_utils.c
+// from main.c
+extern pthread_mutex_t serial_port_mutex;
+
 long long start_time_ms = 0;
 
-void* thread_read(void* args) {
+void *thread_read(void *args) {
     t_windata windata;
     t_info axis_info;
     CircularBuffer cbuf;
@@ -15,23 +17,27 @@ void* thread_read(void* args) {
     window_init(&windata, "plotting");
 
     // init serial commication
-    int serial_port = serial_init(TTY_DEVICE_NAME, O_RDWR, B19200, 0, 1); // blocking = 0, timeout = 1 --> 1*0.1s = 0.1s 
+    int serial_port = *((int *) args); // TODO: hardcoded, but i think apposite thread_types.h and struct is unnecessaty overhead (?)
 
     // set start time
     timer_init();
     long prev_plot_time_ms = 0;
+    long prev_log_time_ms = 0;
 
-    int fd = open(DATA_FILE_NAME, O_RDONLY);
+    int fd = open(DATA_FILE_NAME, O_RDWR);
+    dprintf(fd, "%s\n", TSV_HEADER);
 
     while (1) {
         char line[MAX_BUFFER_SIZE];
     
         // read from Serial (UART or Bluetooth) as fast as possible
+        pthread_mutex_lock(&serial_port_mutex);
         int recv_bytes = serial_readline(serial_port, line);
-
+        pthread_mutex_unlock(&serial_port_mutex);
+        
         if (recv_bytes > 0) {
             fill_one_sample(&cbuf, line);
-            cb_print(&cbuf); // DEBUG
+            //cb_print(&cbuf); // DEBUG
         }
         
         // plot data if DELTA_T_PLOT_MS has passed
@@ -45,16 +51,21 @@ void* thread_read(void* args) {
             prev_plot_time_ms = millis();
         }
 
+        // TODO: NON va bene per due motivi:
+        //       1. loggando ogni DELTA_LOG >> tempo_riempimento_cbuf si introduce del lag nel logging
+        //          (dati sono molto granulari a intervalli: durante il tempo in cui non ha loggato si sono persi dei dati)
+        //       2. non appena entra il programma viene rallentato molto tutto insieme
+        //      --> SOL: Fai il logging con UN ALTRO THREAD (Consumer che legge) (questo è il Producer)
+        // write log data into tsv file every DELTA_T_LOG_MS
+        // if (millis() > prev_log_time_ms + DELTA_T_LOG_MS) {
+        //     log_data_to_tsv(fd, &cbuf);
 
-        // write data into log tsv file every DELTA_T_LOG_MS
-        // ...
+        //     prev_log_time_ms = millis();
+        // }
     }
     
     // deallocate dynamic data
     cb_destroy(&cbuf);
-
-    // close the port
-    close(serial_port);
 
     // close file tsv
     close(fd);

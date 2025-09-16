@@ -1,3 +1,9 @@
-#include "stdlib.h"
+#ifndef THREAD_WRITE_H
+# define THREAD_WRITE_H
 
-void *thread_write(void* args);
+# include "shared_types.h"
+# include "serial.h"
+
+void *thread_write(void *args);
+
+#endif

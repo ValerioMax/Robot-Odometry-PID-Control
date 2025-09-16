@@ -1,20 +1,37 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "serial.h"
 #include "thread_read.h"
 #include "thread_write.h"
-#include <pthread.h>
+
+
+pthread_mutex_t serial_port_mutex;
 
 int main() {
+    int *serial_port_ptr = malloc(sizeof(int));
+    // init serial communication
+    *serial_port_ptr = serial_init(TTY_DEVICE_NAME, O_RDWR, B19200, 0, 1); // blocking = 0, timeout = 1 --> 1*0.1s = 0.1s
+    
+    // init mutex to prevent race condition in concurrent access of serial port by threads
+    // TODO: ACTUALLY they should be NOT NEEDED cause writing a and reading concurrently on same serial port its not a problem
+    //       because serial ports are full duplex (serial driver hadles it)
+    pthread_mutex_init(&serial_port_mutex, NULL);
+
     pthread_t th_read, th_write;
 
     // this thread reads via Bluetooth (Serial) from esp32, plots data on screen, logs data on tsv file
-    pthread_create(&th_read, NULL, thread_read, NULL);
+    pthread_create(&th_read, NULL, thread_read, serial_port_ptr);
 
     // this thread reads command from terminal and send it via Bluetooth (Serial) to esp32
-    pthread_create(&th_write, NULL, thread_write, NULL);
+    pthread_create(&th_write, NULL, thread_write, serial_port_ptr);
+
+    //sleep(1);
 
     pthread_join(th_read, NULL);
     pthread_join(th_write, NULL);
+
+    // close the port
+    close(*serial_port_ptr);
 
     return 0;
 }

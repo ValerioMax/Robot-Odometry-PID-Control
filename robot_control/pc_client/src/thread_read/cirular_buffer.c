@@ -14,7 +14,7 @@ void cb_print(CircularBuffer *cb) {
         int idx = cb_get_idx(cb, i);
 
         long long time_stamp = cb->samples[idx].timestamp;
-        int value = cb->samples[idx].value;
+        int value = cb->samples[idx].pos;
         printf("e%d(%lld, %d) ", i, time_stamp, value);
     }
     printf("\n");

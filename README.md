@@ -56,3 +56,22 @@ altrimenti poi non si ristabilizza più
 
 Per usare mlx installare prima:
 sudo apt-get update && sudo apt-get install xorg libxext-dev zlib1g-dev libbsd-dev
+
+-------------------------------
+
+mi sembra che le printf chiamate nei thread siano buffered, in particolare mi sembra che:
+- thread_read: printf line buffered
+- thread_write: printf a volte fully buffered a volte line buffered
+
+printf line buffered : non scrive su terminale subito a meno che non metti '\n' a fine stringa
+printf fully buffered : non scrive su terminale finché il buffer associato alla printf non è pieno
+
+NOTA: si può forzare il print su terminale chiamando fflush(stdout); in qualsiasi momento
+
+NOTA: da quello che ho capito non c'è un modo per settare la modalità di buffering della printf nei thread
+--> tocca usare fflush(stdout)
+
+-------------------------------
+
+TROVATO IL PROBLEMA DEL SEGFAULT: i due thread accedono alla stessa porta seriale e vanno in conflitto
+--> tocca gestire con dei mutex

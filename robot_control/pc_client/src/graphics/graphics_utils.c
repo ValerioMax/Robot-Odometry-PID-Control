@@ -139,7 +139,7 @@ void draw_data(CircularBuffer *cbuf, t_img *img, t_info *axis_info) {
 		if (&sample) {
 			// maps values to pixel coordinates
 			int mapped_time = (int) map(sample.timestamp, axis_info->time_min, axis_info->time_max, ORIGIN_X, PLANE_WIDTH + ORIGIN_X);
-			int mapped_value = (int) map(sample.value, -axis_info->value_max, axis_info->value_max, PLANE_HEIGHT + PADDING_Y, PADDING_Y);
+			int mapped_value = (int) map(sample.pos, -axis_info->value_max, axis_info->value_max, PLANE_HEIGHT + PADDING_Y, PADDING_Y);
 
 			interpolate_and_draw(img, prev_mapped_time, prev_mapped_value, mapped_time, mapped_value);
 

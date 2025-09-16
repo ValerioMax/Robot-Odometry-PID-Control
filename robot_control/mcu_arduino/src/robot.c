@@ -21,13 +21,12 @@ void Robot_get_commands(Robot *robot) {
     int arg_count = 0;
 
     char *token = strtok(command, " ");
-    printf("parse: %s ", token);
+
     while (token && arg_count < MAX_COMMAND_ARGS) {
+        //printf("%s\n", token);
         cmd_args[arg_count++] = token;
         token = strtok(NULL, " ");
-        printf("%s ", token);
     }
-    printf("\n");
 
     if (arg_count == 0)
         return ;

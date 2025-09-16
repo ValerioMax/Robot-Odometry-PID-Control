@@ -1,4 +1,4 @@
-NAME = plotting
+NAME = pc_client
 CC = gcc
 BUILD_DIR = build
 
@@ -12,8 +12,9 @@ INCLUDE_DIR = include
 INCLUDE_THREAD_READ_DIR = $(INCLUDE_DIR)/thread_read
 INCLUDE_THREAD_WRITE_DIR = $(INCLUDE_DIR)/thread_write
 INCLUDE_GRAPHICS = $(INCLUDE_DIR)/graphics
+INCLUDE_SERIAL = $(INCLUDE_DIR)/serial
 
-INCLUDES = -I $(INCLUDE_THREAD_READ_DIR) -I $(INCLUDE_THREAD_WRITE_DIR) -I $(INCLUDE_GRAPHICS)
+INCLUDES = -I $(INCLUDE_DIR) -I $(INCLUDE_THREAD_READ_DIR) -I $(INCLUDE_THREAD_WRITE_DIR) -I $(INCLUDE_GRAPHICS) -I $(INCLUDE_SERIAL)
 
 # sources
 SRC_DIR = src
@@ -21,11 +22,12 @@ SRC_DIR = src
 THREAD_READ_SRCS_DIR =	$(SRC_DIR)/thread_read
 THREAD_WRITE_SRCS_DIR =	$(SRC_DIR)/thread_write
 GRAPHICS_SRCS_DIR = $(SRC_DIR)/graphics
-
+SERIAL_SRCS_DIR = $(SRC_DIR)/serial
 
 SRCS = $(wildcard $(THREAD_READ_SRCS_DIR)/*.c) \
        $(wildcard $(THREAD_WRITE_SRCS_DIR)/*.c) \
        $(wildcard $(GRAPHICS_SRCS_DIR)/*.c) \
+	   $(wildcard $(SERIAL_SRCS_DIR)/*.c) \
        $(SRC_DIR)/main.c
 
 # NOTA: $(wildcard $(THREAD_READ_SRCS_DIR)/*.c) è giusto mentre $(THREAD_READ_SRCS_DIR)/*.c è sbagliato:
@@ -62,7 +64,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) -c $< -o $@ $(INCLUDES)
 
 clean :
-	rm $(NAME)
+	rm $(BUILD_DIR)/$(NAME)
 	rm -rf $(BUILD_DIR)
 
 

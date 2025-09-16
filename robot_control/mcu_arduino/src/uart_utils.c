@@ -95,9 +95,6 @@ uint8_t *UART_getstring_int() {
     return NULL;
 }
 
-
-
-
 void UART_putstring(uint8_t *buf) {
     while (*buf) {
         UART_putchar(*buf);

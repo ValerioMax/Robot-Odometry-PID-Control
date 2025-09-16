@@ -85,7 +85,6 @@ void pwm_TIMER4_init(int pin) {
     // Setting del canale
     switch (pin) {
         case PH3:
-            printf("hello, %d\n", PH3);
             TCCR4A |= (1 << COM4A1); // set non-inverting PWM on OC4A (pin 6)
             OCR4A = 0; // initial duty cycle at 0
             break;
