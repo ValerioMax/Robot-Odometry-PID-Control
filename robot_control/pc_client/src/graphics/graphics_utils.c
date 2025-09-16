@@ -89,27 +89,34 @@ void interpolate_and_draw(t_img *img, int prev_x, int prev_y, int curr_x, int cu
 	if (prev_x == 0)
 		return ;
 	
-	while (prev_x < curr_x) {
-		my_mlx_pixel_put(img, prev_x, prev_y, (int) color);
-		prev_x++;
-	}
+	// Basic step "interpolation"
+	// while (prev_x < curr_x) {
+	// 	my_mlx_pixel_put(img, prev_x, prev_y, (int) color);
+	// 	prev_x++;
+	// }
+	// return;
 
-	// True interpolation but it difficult (gotta compute slope, ecc.)
-	// TODO: work in progress
-	/*
-	if (curr_y > prev_y)
-		for (int i = prev_y; i < curr_y; i++) {
-			my_mlx_pixel_put(img, prev_x + i, ORIGIN_Y - i, 0x0FFFFF00);
-		}
-	else if (curr_y < prev_y)
-		for (int i = curr_y; i < prev_y; i++) {
-			my_mlx_pixel_put(img, prev_x + i, ORIGIN_Y - i, 0x0FFFFF00);
-		}
-	else
-		for (int i = prev_x; i < curr_x; i++) {
-			my_mlx_pixel_put(img, ORIGIN_X + i, ORIGIN_Y - prev_y, 0x0FFFFF00);
-		}
-	*/
+	// DDA Algoritm for interpolation
+	int dx = curr_x - prev_x;
+    int dy = curr_y - prev_y;
+
+    int steps;
+    if (abs(dx) > abs(dy))
+        steps = abs(dx);
+    else
+        steps = abs(dy);
+
+    float x_increment = (float) dx / steps;
+    float y_increment = (float) dy / steps;
+
+    float x = prev_x;
+    float y = prev_y;
+
+    for (int i = 0; i <= steps; i++) {
+        my_mlx_pixel_put(img, (int) x, (int) y, color);
+        x += x_increment;
+        y += y_increment;
+    }
 }
 
 void draw_data(CircularBuffer *cbuf, t_img *img, t_info *axis_info) {
@@ -152,7 +159,7 @@ void draw_data(CircularBuffer *cbuf, t_img *img, t_info *axis_info) {
 			interpolate_and_draw(img, prev_mapped_time, prev_mapped_pos, mapped_time, mapped_pos, 0x0FFFFF00);
 
 			// draw error
-			//interpolate_and_draw(img, prev_mapped_time, prev_mapped_pos_err, mapped_time, mapped_pos_err, 0x0FFF0000);
+			interpolate_and_draw(img, prev_mapped_time, prev_mapped_pos_err, mapped_time, mapped_pos_err, 0x0FFF0000);
 
 
 			// for interpolation
