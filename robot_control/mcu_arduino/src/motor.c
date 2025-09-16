@@ -13,7 +13,11 @@ void Motor_init(Motor *motor, int in1_pin, int in2_pin, int pwm_pin, Encoder *en
     motor->target_pos = 0;
     motor->target_rpm = 0;
     motor->err_pos = 0;
-    motor->err_rpm = 0; 
+    motor->err_rpm = 0;
+    motor->kp = DEFAULT_KP;
+    motor->ki = DEFAULT_KI;
+    motor->kd = DEFAULT_KD;
+
     motor->encoder = encoder;
 
     // set in1_pin and in2_pin as output
@@ -67,12 +71,24 @@ void Motor_set_speed(Motor *motor, int dir, int duty_cycle) {
     }
 }
 
+void Motor_PID_params(Motor *motor, int kp, int ki, int kd) {
+    motor->kp = kp;
+    motor->ki = ki;
+    motor->kd = kd;
+}
+
 void Motor_PID_position(Motor *motor) {
     if (motor->manual_control)
         return ;
 
+    // get motor state values
     int target_pos = motor->target_pos;
     int pos = motor->encoder->pos;
+
+    // get motor PID parameters (we scale it by 100)
+    float kp = motor->kp;
+    float ki = motor->ki; 
+    float kd = motor->kd;
 
     // error
     int e = target_pos - pos;
@@ -88,7 +104,7 @@ void Motor_PID_position(Motor *motor) {
     else if (e_integral < E_INTEGRAL_MIN) e_integral = E_INTEGRAL_MIN;
 
     // control signal
-    float u = (KP * e) + (KD * de_dt) + (KI * e_integral);
+    float u = (kp * e) + (ki * e_integral) + (kd * de_dt);
 
     // motor speed signal 
     // (it has to be a pwm duty cycle so it has to be positive and between 0 and 255 to prevent overflow)

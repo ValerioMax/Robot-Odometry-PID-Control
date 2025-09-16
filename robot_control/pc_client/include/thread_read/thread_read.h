@@ -11,7 +11,7 @@
 # define DATA_FILE_NAME "tsv/data_sine.tsv"
 //# define DATA_FILE_NAME "tsv/data_sine_floats.tsv"
 
-# define DELTA_T_PLOT_MS 50
+# define DELTA_T_PLOT_MS 1
 # define DELTA_T_LOG_MS 3000
 
 # define TSV_HEADER "pos\tp_trg\tp_err\trpm\tr_trg\tr_err"

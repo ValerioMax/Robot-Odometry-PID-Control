@@ -75,3 +75,6 @@ NOTA: da quello che ho capito non c'è un modo per settare la modalità di buffe
 
 TROVATO IL PROBLEMA DEL SEGFAULT: i due thread accedono alla stessa porta seriale e vanno in conflitto
 --> tocca gestire con dei mutex
+UPDATE: IN REALTà NON CREDO, perchè la comunicazione serial è FULL DUPLEX quindi non è un problema
+    il segfault è sparito quando ho commentato le printf senza '\n' in robot.c:
+        sembra che se arduino fa printf senza '\n' da fastidio al pc client

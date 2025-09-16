@@ -33,8 +33,8 @@ void Robot_get_commands(Robot *robot) {
 
     // [OPEN LOOP]
     // pwm <dir_motor1_left> <duty_cycle%_motor_left> <dir_motor_right> <duty_cycle%_motor_right>
-    if (!strcmp(cmd_args[0], PWM_COMMAND) && arg_count == 5) {
-        printf("PWM\n");
+    if (!strcmp(cmd_args[0], PWM_COMMAND) && arg_count == PWM_COMMAND_ARGS) {
+        //printf("PWM\n");
         robot->motor_left->manual_control = 1;
         robot->motor_right->manual_control = 1;
         Motor_set_speed(robot->motor_left, atoi(cmd_args[1]), atoi(cmd_args[2]));
@@ -42,8 +42,8 @@ void Robot_get_commands(Robot *robot) {
     }
     // [CLOSED LOOP]
     // pos	<pos_motor_1> <pos_motor_2> 
-    else if (!strcmp(cmd_args[0], POS_COMMAND) && arg_count == 3) {
-        printf("POS\n");
+    else if (!strcmp(cmd_args[0], POS_COMMAND) && arg_count == POS_COMMAND_ARGS) {
+        //printf("POS\n");
         robot->motor_left->manual_control = 0;
         robot->motor_right->manual_control = 0;
         robot->motor_left->target_pos = atoi(cmd_args[1]);
@@ -51,15 +51,20 @@ void Robot_get_commands(Robot *robot) {
     }
     // [CLOSED LOOP]
     // rpm	<rpm_motor_1> <rpm_motor_2> 
-    else if (!strcmp(cmd_args[0], RPM_COMMAND) && arg_count == 3) {
+    else if (!strcmp(cmd_args[0], RPM_COMMAND) && arg_count == RPM_COMMAND_ARGS) {
         robot->motor_left->manual_control = 0;
         robot->motor_right->manual_control = 0;
         // TODO
         //Motor_PID_speed()
     }
     // setmotor <motor1> <motor2>
-    else if (!strcmp(cmd_args[0], SETMOTOR_COMMAND) && arg_count == 3) {
+    else if (!strcmp(cmd_args[0], SETMOTOR_COMMAND) && arg_count == SETMOTOR_COMMAND_ARGS) {
         Motor_attach(robot->motor_left, atoi(cmd_args[1]));
         Motor_attach(robot->motor_right, atoi(cmd_args[2]));
+    }
+    // gain <kp> <ki> <kd>
+    else if (!strcmp(cmd_args[0], GAIN_COMMAND) && arg_count == GAIN_COMMAND_ARGS) {
+        Motor_PID_params(robot->motor_left, atoi(cmd_args[1]), atoi(cmd_args[2]), atoi(cmd_args[3]));
+        Motor_PID_params(robot->motor_right, atoi(cmd_args[1]), atoi(cmd_args[2]), atoi(cmd_args[3]));
     }
 }

@@ -2,14 +2,6 @@
 
 extern long long start_time_ms;
 
-// void get_data_from_tsv(t_sample *sample_data[], int fd) {
-//     // read last NUM_ROWS of tsv file
-//     for (int i = 0; i < NUM_SAMPLES; i++){
-//         read_line(fd, sample_data[i]); //TODO capire se la read legge dall'ultimo byte letto alla chiamata precedente oppure si resetta dall'inizio del file
-//                                         // -> in questo caso bisogna passare un puntatore a dove era rimasta
-//     }   
-// }
-
 // set start time when called
 void timer_init() {
     struct timeval tv;
@@ -50,8 +42,6 @@ void fill_one_sample(CircularBuffer *cbuf, char *line) {
     char *token;
     
     token = strtok(line, "\t "); // TODO con "\t " funziona, perche?? (dovrebbe andare anche solo con "\t")
-    //if (token) sample.value = atoi(token);//millis(); //atol(token);
-    //else return ;
     
     int i = 0;
 

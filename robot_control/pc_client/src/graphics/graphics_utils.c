@@ -84,13 +84,13 @@ double map(double value, double min1, double max1, double min2, double max2) {
 }
 
 // interpolate previous point with current to make a continous curve
-void interpolate_and_draw(t_img *img, int prev_x, int prev_y, int curr_x, int curr_y) {
+void interpolate_and_draw(t_img *img, int prev_x, int prev_y, int curr_x, int curr_y, uint32_t color) {
 	// its first iteration and we are before ORIGIN_X
 	if (prev_x == 0)
 		return ;
 	
 	while (prev_x < curr_x) {
-		my_mlx_pixel_put(img, prev_x, prev_y, 0x0FFFFF00);
+		my_mlx_pixel_put(img, prev_x, prev_y, (int) color);
 		prev_x++;
 	}
 
@@ -124,7 +124,9 @@ void draw_data(CircularBuffer *cbuf, t_img *img, t_info *axis_info) {
 	//int curr_max = HEIGHT / 10;
 
 	int prev_mapped_time = 0;
-	int prev_mapped_value = 0;
+	int prev_mapped_pos = 0;
+	int prev_mapped_pos_trg = 0;
+	int prev_mapped_pos_err = 0;
 
 	int num_elements = cb_get_num_elements(cbuf);
 
@@ -139,13 +141,25 @@ void draw_data(CircularBuffer *cbuf, t_img *img, t_info *axis_info) {
 		if (&sample) {
 			// maps values to pixel coordinates
 			int mapped_time = (int) map(sample.timestamp, axis_info->time_min, axis_info->time_max, ORIGIN_X, PLANE_WIDTH + ORIGIN_X);
-			int mapped_value = (int) map(sample.pos, -axis_info->value_max, axis_info->value_max, PLANE_HEIGHT + PADDING_Y, PADDING_Y);
+			int mapped_pos = (int) map(sample.pos, -axis_info->value_max, axis_info->value_max, PLANE_HEIGHT + PADDING_Y, PADDING_Y);
+			int mapped_pos_trg = (int) map(sample.pos_target, -axis_info->value_max, axis_info->value_max, PLANE_HEIGHT + PADDING_Y, PADDING_Y);
+			int mapped_pos_err = (int) map(sample.pos_error, -axis_info->value_max, axis_info->value_max, PLANE_HEIGHT + PADDING_Y, PADDING_Y);
 
-			interpolate_and_draw(img, prev_mapped_time, prev_mapped_value, mapped_time, mapped_value);
+			// draw target pos
+			interpolate_and_draw(img, prev_mapped_time, prev_mapped_pos_trg, mapped_time, mapped_pos_trg, 0x0FFF00FF);
+
+			// draw pos
+			interpolate_and_draw(img, prev_mapped_time, prev_mapped_pos, mapped_time, mapped_pos, 0x0FFFFF00);
+
+			// draw error
+			//interpolate_and_draw(img, prev_mapped_time, prev_mapped_pos_err, mapped_time, mapped_pos_err, 0x0FFF0000);
+
 
 			// for interpolation
 			prev_mapped_time = mapped_time;
-			prev_mapped_value = mapped_value;
+			prev_mapped_pos = mapped_pos;
+			prev_mapped_pos_trg = mapped_pos_trg;
+			prev_mapped_pos_err = mapped_pos_err;
 
 			// normalize value respect to a maximum value got so far
 			//int norm_value = (sample->value / curr_max) * HEIGHT;
