@@ -11,10 +11,14 @@ void Robot_init(Robot *robot, Motor *motor_left, Motor *motor_right) {
 
 void Robot_get_commands(Robot *robot) {
     // non blocking read: returns arrived string, if string didnt arrive or didnt arrive entirely returns NULL immediately
-    char *command = (char*) UART_getstring_int();
+    char *command = (char*) UART_getstring_non_blocking();
 
     if (!command)
         return ;
+
+    // DEBBUGGOLOS
+    // printf("arrived\n");
+    // return;
 
     // parse command
     char *cmd_args[MAX_COMMAND_ARGS];

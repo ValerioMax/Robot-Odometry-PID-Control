@@ -34,7 +34,7 @@ void new_image_init(t_windata *data) {
 
 // draws numbers on the axis (does a linspace in proportion with plane pixels dimentions)
 void draw_info(void *mlx, void *win, t_info *axis_info) {
-	char str[10];
+	char str[10]; // TODO: MAX_BUF here is leght in char of max long long (variable that store timestamp)
 	int norm_time;
 	int norm_value;
 
@@ -113,15 +113,14 @@ void interpolate_and_draw(t_img *img, int prev_x, int prev_y, int curr_x, int cu
     float y = prev_y;
 
     for (int i = 0; i <= steps; i++) {
-        my_mlx_pixel_put(img, (int) x, (int) y, color);
+		if (x > ORIGIN_X && x < PLANE_WIDTH + ORIGIN_X && y > PADDING_Y && y < PLANE_HEIGHT + PADDING_Y)
+        	my_mlx_pixel_put(img, (int) x, (int) y, color);
         x += x_increment;
         y += y_increment;
     }
 }
 
-void draw_data(CircularBuffer *cbuf, t_img *img, t_info *axis_info) {
-	draw_grid(img);
-	
+void draw_data(CircularBuffer *cbuf, t_img *img, t_info *axis_info) {	
 	if (!cbuf)
 		return ;
 	
@@ -146,6 +145,7 @@ void draw_data(CircularBuffer *cbuf, t_img *img, t_info *axis_info) {
 		t_sample sample = cbuf->samples[idx];
 
 		if (&sample) {
+			//printf("c %lld, %lld %lld, %d %d %d\n", sample.timestamp, axis_info->time_min, axis_info->time_max, sample.pos, sample.pos_target, sample.pos_error);
 			// maps values to pixel coordinates
 			int mapped_time = (int) map(sample.timestamp, axis_info->time_min, axis_info->time_max, ORIGIN_X, PLANE_WIDTH + ORIGIN_X);
 			int mapped_pos = (int) map(sample.pos, -axis_info->value_max, axis_info->value_max, PLANE_HEIGHT + PADDING_Y, PADDING_Y);
@@ -160,7 +160,6 @@ void draw_data(CircularBuffer *cbuf, t_img *img, t_info *axis_info) {
 
 			// draw error
 			interpolate_and_draw(img, prev_mapped_time, prev_mapped_pos_err, mapped_time, mapped_pos_err, 0x0FFF0000);
-
 
 			// for interpolation
 			prev_mapped_time = mapped_time;
@@ -181,6 +180,7 @@ void plot_data(CircularBuffer *cbuf, t_windata *windata, t_info *axis_info) {
 	// everytime create a new image in order to completely cover previous frame
 	new_image_init(windata);
 
+	draw_grid(&windata->img);
 	draw_data(cbuf, &windata->img, axis_info);
 
 	// draw the image pixels on the window

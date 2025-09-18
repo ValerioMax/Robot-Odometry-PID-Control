@@ -31,10 +31,10 @@ void *thread_read(void *args) {
         char line[MAX_BUFFER_SIZE];
     
         // read from Serial (UART or Bluetooth) as fast as possible
-        pthread_mutex_lock(&serial_port_mutex);
+        //pthread_mutex_lock(&serial_port_mutex);
         int recv_bytes = serial_readline(serial_port, line);
-        pthread_mutex_unlock(&serial_port_mutex);
-        
+        //pthread_mutex_unlock(&serial_port_mutex);
+
         if (recv_bytes > 0) {
             fill_one_sample(&cbuf, line);
             //cb_print(&cbuf); // DEBUG

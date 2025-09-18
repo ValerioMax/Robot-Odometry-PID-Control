@@ -3,15 +3,17 @@
 int serial_init(const char *tty_device, int mode, int baud, int blocking, int timeout) {
     // open serial port
     int serial_port = open(tty_device, mode);
+
     if (serial_port < 0) {
-        printf("Error uart_init(): %s\n", strerror(errno));
+        printf("Error serial_init: %s\n", strerror(errno));
         return -1;
     }
 
     // configure port settings
     struct termios tty;
+    memset(&tty, 0, sizeof(tty));
     if (tcgetattr(serial_port, &tty) != 0) {
-        printf("Error uart_init(): %s\n", strerror(errno));
+        printf("Error serial_init: %s\n", strerror(errno));
         return -1;
     }
 
@@ -20,22 +22,29 @@ int serial_init(const char *tty_device, int mode, int baud, int blocking, int ti
     cfsetispeed(&tty, baud); // input bitrate
 
     // set data bits, stop bits, parity bit
-    tty.c_cflag &= ~PARENB;
-    tty.c_cflag &= ~CSTOPB;
-    tty.c_cflag &= ~CSIZE;
-    tty.c_cflag |= CS8;
-    tty.c_cflag |= (CREAD | CLOCAL);
-    
-    // set local, input, output settings
-    tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHONL | ISIG);
-    tty.c_iflag &= ~(IXON | IXOFF | IXANY | IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL);
-    tty.c_oflag &= ~(OPOST | ONLCR);
+    tty.c_cflag &= ~PARENB; // No parity
+    tty.c_cflag &= ~CSTOPB; // One stop bit
+    tty.c_cflag &= ~CSIZE;  // Clear size bits
+    tty.c_cflag |= CS8;     // 8 data bits
+    tty.c_cflag &= ~CRTSCTS; // No hardware flow control
+    tty.c_cflag |= CREAD | CLOCAL; // Enable receiver and ignore modem control lines
+
+    tty.c_lflag &= ~ICANON; // Disable canonical mode
+    tty.c_lflag &= ~ECHO;   // Disable echo
+    tty.c_lflag &= ~ECHOE;  // Disable erasure
+    tty.c_lflag &= ~ECHONL; // Disable newline echo
+    tty.c_lflag &= ~ISIG;   // Disable interpretation of INTR, QUIT, etc.
+
+    // TODO: UNCOMMENT
+    // tty.c_iflag &= ~(IXON | IXOFF | IXANY | IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL);
+    // tty.c_oflag &= ~(OPOST | ONLCR);
     
     // set timeout
     tty.c_cc[VTIME] = timeout; // waits up to 1 sec (10 * 0.1s) to read a byte
 
     // set blocking/non-blocking read
-    tty.c_cc[VMIN] = blocking; // 0: non blocking, 1: blocking
+    tty.c_cc[VMIN] = blocking;  // minimum num of byte to read before unlocking
+                                // --> 0 sets read() calls as not blocking 
 
     // NOTE: its actually "blocking" because of timeout, but not indefinetly blocking, also timeout can be set to 0
 
@@ -64,7 +73,6 @@ int serial_readline(int serial_port, char *buf) {
     if (read_bytes > 0) {
         // terminate string to use strtok()
         buf[read_bytes - 1] = '\0';
-
         //printf("received: %s\n", buf); // DEBUG
     }
 

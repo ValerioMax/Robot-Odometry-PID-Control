@@ -9,6 +9,7 @@
 # include "circular_buffer.h"
 
 # define READ_BUFFER_SIZE 255
+# define NUM_TOKENS 6 // number of tokens we expect from arduino
 
 //void get_data_from_tsv(t_sample *sample_data[], int fd);
 

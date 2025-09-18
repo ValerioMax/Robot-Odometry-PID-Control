@@ -36,17 +36,17 @@ void fill_one_sample(CircularBuffer *cbuf, char *line) {
     //printf("%lld\n", millis());
     //printf("%s\n", line);
 
-    t_sample sample;
+    t_sample sample = {0};
 
     // parse line
     char *token;
     
-    token = strtok(line, "\t "); // TODO con "\t " funziona, perche?? (dovrebbe andare anche solo con "\t")
+    token = strtok(line, " ");
     
-    int i = 0;
+    int token_count = 0;
 
     while (token) {
-        switch (i) {
+        switch (token_count) {
             // pos
             case 0:
                 sample.pos = atoi(token);
@@ -74,11 +74,18 @@ void fill_one_sample(CircularBuffer *cbuf, char *line) {
             default:
                 break;
         }
-        token = strtok(NULL, "\t ");
-        i++;
+        token = strtok(NULL, " ");
+        token_count++;
     }
 
+    // if not all data arrived exit
+    // (cause if a field hasnt arrived it would be set to 0 because of sample = {0}; and so 0 would be plotted when actual value isnt 0)
+    if (token_count != NUM_TOKENS)
+        return ;
+
     sample.timestamp = millis();
+
+    //printf("c %lld, %d %d %d, %d %d %d\n", sample.timestamp, sample.pos, sample.pos_target, sample.pos_error, sample.rpm, sample.rpm_target, sample.rpm_error);
 
     // add element to buffer
     if (cb_is_full(cbuf))
