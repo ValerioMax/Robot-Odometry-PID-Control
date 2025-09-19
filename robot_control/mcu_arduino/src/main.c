@@ -54,42 +54,40 @@ int main() {
         if (millis() > prev_sample_time + DELTA_T_MS) {
             Encoder_update_rpm(&encoder1, DELTA_T_MS);
             //Encoder_update_rpm(&encoder2, DELTA_T_MS);
+
             Motor_PID_position(&motor1);
             //Motor_PID_position(&motor2);
+
+            //Motor_PID_speed(&motor1);
+            //Motor_PID_speed(&motor2);
+
             prev_sample_time = millis();
         }
         // every DELTA_T_LOG_MS data gets logged on UART
         if (millis() > prev_log_time + DELTA_T_LOG_MS) {
-            //printf("trg %d, pos %d, err %d, u_pwm %u, dir %d, rpm %d\n", motor1.target_pos, motor1.encoder->pos, motor1.target_pos - motor1.encoder->pos, OCR4A, motor1.encoder->dir, motor1.encoder->rpm);
-            printf("%d %d %d %d %d %d\n", 
+
+            // motor 1 everything
+            printf("%ld %ld %ld %d %d %d, %u\n", 
                 motor1.encoder->pos,
                 motor1.target_pos,
                 motor1.err_pos,
                 motor1.encoder->rpm,
                 motor1.target_rpm,
-                motor1.err_rpm);
+                motor1.err_rpm,
+                OCR4A
+            );
+
+            // printf("%d %d %d\n", 
+            //     motor1.encoder->pos,
+            //     motor1.target_pos,
+            //     motor1.err_pos);
+
+            // printf("%d %d %d\n", 
+            //     motor1.encoder->rpm,
+            //     motor1.target_rpm,
+            //     motor1.err_rpm);
+            
             prev_log_time = millis();
         }
-
-
-
-
-        // attempt to fill buffer all at once and then send one byte at a time to not create a bottleneck with serial (doesnt work properly for now)
-        /*
-        // every DELTA_T_LOG_MS fill data logging buffer
-        if (millis() > prev_fill_buf_time + DELTA_T_FILL_BUF_MS) {
-            sprintf(log_buf, "trg %d, pos %d, err %d, dtc %u, dir %d\n",
-                                target_pos, motor1.encoder->pos, target_pos - motor1.encoder->pos, OCR4A, motor1.encoder->dir);
-            prev_fill_buf_time = millis();
-        }
-        // every DELTA_T_LOG_BYTE_MS log on UART a byte at a timeù
-        if (millis() > prev_log_time + DELTA_T_LOG_MS) {
-            if (*log_buf_pt) {
-                UART_putchar(*log_buf_pt);
-                log_buf_pt++;
-            }   
-            prev_log_time = millis();
-        }
-        */
     }
 }

@@ -120,7 +120,7 @@ void interpolate_and_draw(t_img *img, int prev_x, int prev_y, int curr_x, int cu
     }
 }
 
-void draw_data(CircularBuffer *cbuf, t_img *img, t_info *axis_info) {	
+void draw_data(t_img *img, CircularBuffer *cbuf, t_info *axis_info) {	
 	if (!cbuf)
 		return ;
 	
@@ -130,9 +130,14 @@ void draw_data(CircularBuffer *cbuf, t_img *img, t_info *axis_info) {
 	//int curr_max = HEIGHT / 10;
 
 	int prev_mapped_time = 0;
+
 	int prev_mapped_pos = 0;
 	int prev_mapped_pos_trg = 0;
 	int prev_mapped_pos_err = 0;
+
+	int prev_mapped_rpm = 0;
+	int prev_mapped_rpm_trg = 0;
+	int prev_mapped_rpm_err = 0;
 
 	int num_elements = cb_get_num_elements(cbuf);
 
@@ -148,9 +153,14 @@ void draw_data(CircularBuffer *cbuf, t_img *img, t_info *axis_info) {
 			//printf("c %lld, %lld %lld, %d %d %d\n", sample.timestamp, axis_info->time_min, axis_info->time_max, sample.pos, sample.pos_target, sample.pos_error);
 			// maps values to pixel coordinates
 			int mapped_time = (int) map(sample.timestamp, axis_info->time_min, axis_info->time_max, ORIGIN_X, PLANE_WIDTH + ORIGIN_X);
+			
 			int mapped_pos = (int) map(sample.pos, -axis_info->value_max, axis_info->value_max, PLANE_HEIGHT + PADDING_Y, PADDING_Y);
 			int mapped_pos_trg = (int) map(sample.pos_target, -axis_info->value_max, axis_info->value_max, PLANE_HEIGHT + PADDING_Y, PADDING_Y);
 			int mapped_pos_err = (int) map(sample.pos_error, -axis_info->value_max, axis_info->value_max, PLANE_HEIGHT + PADDING_Y, PADDING_Y);
+			
+			int mapped_rpm = (int) map(sample.rpm, -axis_info->value_max, axis_info->value_max, PLANE_HEIGHT + PADDING_Y, PADDING_Y);
+			int mapped_rpm_trg = (int) map(sample.rpm_target, -axis_info->value_max, axis_info->value_max, PLANE_HEIGHT + PADDING_Y, PADDING_Y);
+			int mapped_rpm_err = (int) map(sample.rpm_error, -axis_info->value_max, axis_info->value_max, PLANE_HEIGHT + PADDING_Y, PADDING_Y);
 
 			// draw target pos
 			interpolate_and_draw(img, prev_mapped_time, prev_mapped_pos_trg, mapped_time, mapped_pos_trg, 0x0FFF00FF);
@@ -158,14 +168,28 @@ void draw_data(CircularBuffer *cbuf, t_img *img, t_info *axis_info) {
 			// draw pos
 			interpolate_and_draw(img, prev_mapped_time, prev_mapped_pos, mapped_time, mapped_pos, 0x0FFFFF00);
 
-			// draw error
+			// draw error pos
 			interpolate_and_draw(img, prev_mapped_time, prev_mapped_pos_err, mapped_time, mapped_pos_err, 0x0FFF0000);
+
+			// // draw target rpm
+			// interpolate_and_draw(img, prev_mapped_time, prev_mapped_rpm_trg, mapped_time, mapped_rpm_trg, 0x0FFF00FF);
+
+			// // draw rpm
+			// interpolate_and_draw(img, prev_mapped_time, prev_mapped_rpm, mapped_time, mapped_rpm, 0x0FFFFF00);
+
+			// // draw error rpm
+			// interpolate_and_draw(img, prev_mapped_time, prev_mapped_rpm_err, mapped_time, mapped_rpm_err, 0x0FFF0000);
 
 			// for interpolation
 			prev_mapped_time = mapped_time;
+
 			prev_mapped_pos = mapped_pos;
 			prev_mapped_pos_trg = mapped_pos_trg;
 			prev_mapped_pos_err = mapped_pos_err;
+
+			prev_mapped_rpm = mapped_rpm;
+			prev_mapped_rpm_trg = mapped_rpm_trg;
+			prev_mapped_rpm_err = mapped_rpm_err;
 
 			// normalize value respect to a maximum value got so far
 			//int norm_value = (sample->value / curr_max) * HEIGHT;
@@ -176,16 +200,29 @@ void draw_data(CircularBuffer *cbuf, t_img *img, t_info *axis_info) {
 	}
 }
 
-void plot_data(CircularBuffer *cbuf, t_windata *windata, t_info *axis_info) {
+void plot_data(t_windata *windata, CircularBuffer *cbuf, t_info *axis_info) {
 	// everytime create a new image in order to completely cover previous frame
 	new_image_init(windata);
 
 	draw_grid(&windata->img);
-	draw_data(cbuf, &windata->img, axis_info);
+	draw_data(&windata->img, cbuf, axis_info);
 
 	// draw the image pixels on the window
 	mlx_put_image_to_window(windata->mlx, windata->win, windata->img.img, 0, 0);
 
 	// for reasons strings have to be drawn after the rest
 	draw_info(windata->mlx, windata->win, axis_info);
+}
+
+int	key_handler(int keysym, t_info *axis_info) {
+	if (keysym == XK_Escape)
+		exit(1);
+	if (keysym == XK_z) {
+		axis_info->value_max += 10;
+	}
+	if (keysym == XK_x) {
+		axis_info->value_max -= 10;
+	}
+
+	return 0;
 }

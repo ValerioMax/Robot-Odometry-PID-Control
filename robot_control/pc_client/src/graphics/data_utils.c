@@ -17,7 +17,7 @@ long long millis() {
     return current_time_ms - start_time_ms;
 }
 
-void set_axis_info(CircularBuffer *cbuf, t_info *axis_info) {
+void set_x_axis_info(t_info *axis_info, CircularBuffer *cbuf) {
     if (!cbuf)
 		return ;
 
@@ -26,8 +26,12 @@ void set_axis_info(CircularBuffer *cbuf, t_info *axis_info) {
 	axis_info->time_max = (long long) (cbuf->samples[cb_get_idx_last_elem(cbuf)]).timestamp;
     axis_info->time_range = abs(axis_info->time_max - axis_info->time_min);
 
-    axis_info->value_max = MAX_SAMPLE_VALUE; // TODO change this value
+    //axis_info->value_max = y_max; // TODO change this value
     //printf("%lf %lf %lf\n", axis_info->time_min, axis_info->time_max, axis_info->time_range);
+}
+
+void set_y_axis_info(t_info *axis_info, int y_max) {
+    axis_info->value_max = y_max; 
 }
 
 void fill_one_sample(CircularBuffer *cbuf, char *line) {

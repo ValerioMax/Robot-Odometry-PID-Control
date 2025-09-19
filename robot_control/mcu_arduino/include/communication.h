@@ -19,3 +19,6 @@
 
 #define GAIN_COMMAND "gain"
 #define GAIN_COMMAND_ARGS 4
+
+#define SETMANUAL_COMMAND "setmanual"
+#define SETMANUAL_COMMAND_ARGS 2

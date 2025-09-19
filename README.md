@@ -78,3 +78,55 @@ TROVATO IL PROBLEMA DEL SEGFAULT: i due thread accedono alla stessa porta serial
 UPDATE: IN REALTà NON CREDO, perchè la comunicazione serial è FULL DUPLEX quindi non è un problema
     il segfault è sparito quando ho commentato le printf senza '\n' in robot.c:
         sembra che se arduino fa printf senza '\n' da fastidio al pc client
+
+-------------------------------
+
+Risolvi il fatto che dopo un pò inizia a laggare il pc client
+
+-------------------------------
+
+Empiricamente ho trovato che per una rotazione di shaft esterno ogni motore fa 2100/2200 tick per rivoluzione completa
+
+Attaccando DIRETTAMENTE la tensione al morsetti dei motori ho notato che gli rpm_max sono:
+- Attaccando 12V --> ~88rpm
+- Attaccando 10.4V --> ~77rpm
+- Attaccando 8V --> ~58rpm
+- Attaccando 3V --> ~20rpm
+
+NOTA: attaccando INDIRETTAMENTE la tensione, ovvero dandogliela all'HBridge, ci sarà un calo di tensione dovuto
+      alla coppia di mosfet ON dove passa la corrente.
+      (Es: applicando 12V all'HBridge, con duty cycle max (100%), ottengo tensione diretta sul motore di 10.4V)
+
+      Quindi applicando 12V all'Hbridge, gli rpm_max a cui potranno andare i motori è ~77rpm
+
+-------------------------------
+
+Dopo un pò di tuning ho trovato PID params:
+- per controllo posizione (BUONI):
+    kp = 300
+    ki = 0
+    kd = 15
+  danno una stedy state costante di un paio di step (molto piccola rispetto agli step che fa, es: pos=10002 target=10000)
+  e zero oscillazioni nell'arrivare al target
+
+NOTA: essendo costante, questo errore si nota di più quando il comando è piccolo, quindi non farti ingannare dal grafico plottato
+      se il range sulle y è piccolo!
+
+NOTA: Ho problemi a usare il termine intergrale: o il clamping è sbagliato oppure non so bene come tunarlo.
+      Qualsiasi valore che metto in ki ottengo dei risultati peggiori (maggiore steady state e errore) che senza
+
+- per il controllo di velocità (NON BUONISSIMI):
+    kp = 6000
+    ki = 100
+    kd = 200
+
+-------------------------------
+
+NOTA: è fondamentale che u e u_pwm siano di un tipo (es: float o int32_t) che possa contenere un numero molto grande.
+Perché se il target è molto grande e u diventa molto grande allora potrebbe andare in overflow
+facendo ottenere paradossalmente un segnale più piccolo!!!!!!
+--> Si potrebbe fare un check sull'errore e su e_dt oltre che su e_integral, ma bisogna tenere conto anche di kp, ki, kd
+
+
+
+

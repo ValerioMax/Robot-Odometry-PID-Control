@@ -38,7 +38,9 @@ void		my_mlx_pixel_put(t_img *data, int x, int y, int color);
 void		window_init(t_windata *data, const char *win_name);
 void		new_image_init(t_windata *data);
 void		draw_info(void *mlx, void *win, t_info *axis_info);
-void		draw_data(CircularBuffer *cbuf, t_img *img, t_info *axis_info);
-void		plot_data(CircularBuffer *cbuf, t_windata *windata, t_info *axis_info);
+void		draw_data(t_img *img, CircularBuffer *cbuf, t_info *axis_info);
+void		plot_data(t_windata *windata, CircularBuffer *cbuf, t_info *axis_info);
+
+int			key_handler(int keysym, t_info *axis_info);
 
 #endif

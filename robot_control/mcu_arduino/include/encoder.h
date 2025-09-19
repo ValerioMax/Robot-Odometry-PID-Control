@@ -4,15 +4,17 @@
 #include "shared_types.h"
 #include "peripherals_utils.h"
 
+#define TICKS_PER_REV 2200 //1650 //1875 // measured empirically
+
 typedef struct {
     int pin_a;
     int pin_b;
     int port; // port of pin_a and pin_b (we assume they are in same port)
 
-    int pos;        // current measured rpm
-    int pos_prev;   // only used to compute rpm
-    int rpm;        // current measured rpm
-    int dir;        // current measured dir
+    int32_t pos;        // current measured rpm
+    int32_t pos_prev;   // only used to compute rpm
+    int rpm;            // current measured rpm
+    int dir;            // current measured dir
 } Encoder;
 
 void    Encoder_init(Encoder *encoder, int pin_a, int pin_b, int port);

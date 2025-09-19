@@ -61,6 +61,14 @@ void Encoder_read(Encoder *encoder) {
 
 void Encoder_update_rpm(Encoder *encoder, int time_passed_ms) {
     // TODO: maybe use abs() cause dir is already specified
-    encoder->rpm = (encoder->pos - encoder->pos_prev) / (time_passed_ms / 1000.0);
+
+    // velocity in tick/s
+    float v_tick = (encoder->pos - encoder->pos_prev) / (time_passed_ms / 1000.0);
+
+    // velocity in rpm
+    encoder->rpm = (v_tick * 60.0) / TICKS_PER_REV;
+
     encoder->pos_prev = encoder->pos;
+
+    //printf("v_tick %ld, encrpm %ld\n", (long) v_tick, (long) encoder->rpm);
 }

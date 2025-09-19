@@ -3,8 +3,14 @@
 Motor motor1 = {0};
 Motor motor2 = {0};
 
-float e_prev = 0;
-float e_integral = 0;
+int32_t e_pos_prev = 0;
+float e_pos_integral = 0;
+
+float e_rpm_prev = 0;
+float e_rpm_integral = 0;
+
+float rpm_filt = 0;
+float rpm_filt_prev = 0;
 
 void Motor_init(Motor *motor, int in1_pin, int in2_pin, int pwm_pin, Encoder *encoder) {
     motor->in1_pin = in1_pin;
@@ -36,7 +42,7 @@ void Motor_attach(Motor *motor, int state) {
     motor->attached = state;
 }
 
-void Motor_set_speed(Motor *motor, int dir, int duty_cycle) {
+void Motor_set_pwm(Motor *motor, int dir, uint16_t duty_cycle) {
     if (!(motor->attached))
         return ;
 
@@ -46,13 +52,13 @@ void Motor_set_speed(Motor *motor, int dir, int duty_cycle) {
     // setting dutycycle (and so voltage intensity)
     switch (motor->pwm_pin) {
         case PH3:
-            OCR4A = (uint16_t) duty_cycle;
+            OCR4A = duty_cycle;
             break;
         case PH4:
-            OCR4B = (uint16_t) duty_cycle;
+            OCR4B = duty_cycle;
             break;
         case PH5:
-            OCR4C = (uint16_t) duty_cycle;
+            OCR4C = duty_cycle;
             break;
     }
 
@@ -71,7 +77,7 @@ void Motor_set_speed(Motor *motor, int dir, int duty_cycle) {
     }
 }
 
-void Motor_PID_params(Motor *motor, int kp, int ki, int kd) {
+void Motor_PID_params(Motor *motor, int32_t kp, int32_t ki, int32_t kd) {
     motor->kp = kp;
     motor->ki = ki;
     motor->kd = kd;
@@ -82,32 +88,31 @@ void Motor_PID_position(Motor *motor) {
         return ;
 
     // get motor state values
-    int target_pos = motor->target_pos;
-    int pos = motor->encoder->pos;
+    int32_t target_pos = motor->target_pos;
+    int32_t pos = motor->encoder->pos;
 
-    // get motor PID parameters (we scale it by 100)
-    float kp = motor->kp;
-    float ki = motor->ki; 
-    float kd = motor->kd;
+    // get motor PID parameters
+    int32_t kp = motor->kp;
+    int32_t ki = motor->ki; 
+    int32_t kd = motor->kd;
 
     // error
-    int e = target_pos - pos;
+    int32_t e = target_pos - pos;
 
     // derivative
-    float de_dt = (e - e_prev) / (DELTA_T_MS / 1000.0);
+    float de_dt = (e - e_pos_prev) / (DELTA_T_MS / 1000.0);
 
     // integral
-    e_integral = e_integral + e * (DELTA_T_MS / 1000.0);
+    e_pos_integral = e_pos_integral + e * (DELTA_T_MS / 1000.0);
 
     // e_integral clamping
-    if (e_integral > E_INTEGRAL_MAX) e_integral = E_INTEGRAL_MAX;
-    else if (e_integral < E_INTEGRAL_MIN) e_integral = E_INTEGRAL_MIN;
+    if (e_pos_integral > E_INTEGRAL_MAX) e_pos_integral = E_INTEGRAL_MAX;
+    else if (e_pos_integral < E_INTEGRAL_MIN) e_pos_integral = E_INTEGRAL_MIN;
 
     // control signal
-    float u = (kp * e) + (ki * e_integral) + (kd * de_dt);
+    float u = (kp * e) + (ki * e_pos_integral) + (kd * de_dt);
 
-    // motor speed signal 
-    // (it has to be a pwm duty cycle so it has to be positive and between 0 and 255 to prevent overflow)
+    // motor speed signal
     float u_pwm = fabs(u);
 
     // cap it to max value
@@ -120,11 +125,68 @@ void Motor_PID_position(Motor *motor) {
         dir = -1;
 
     // actuate command
-    Motor_set_speed(motor, dir, u_pwm);
+    Motor_set_pwm(motor, dir, (uint16_t) u_pwm);
 
     // update motor position error
     motor->err_pos = e;
 
     // store previous error
-    e_prev = e;
+    e_pos_prev = e;
+}
+
+void Motor_PID_speed(Motor *motor) {
+    if (motor->manual_control)
+        return ;
+
+    // get motor state values
+    int target_rpm = motor->target_rpm;
+    int rpm = motor->encoder->rpm;
+
+    // low-pass filter (25 Hz cutoff frequency (w0))
+    rpm_filt = (0.854 * rpm_filt) + (0.0728 * rpm) + (0.0728 * rpm_filt_prev);
+    rpm_filt_prev = rpm; // TODO: mi sa che è  = rpm_filt (?)
+
+    // get motor PID parameters
+    int32_t kp = motor->kp;
+    int32_t ki = motor->ki; 
+    int32_t kd = motor->kd;
+
+    // error
+    int e = target_rpm - rpm_filt;
+
+    // derivative
+    float de_dt = (e - e_rpm_prev) / (DELTA_T_MS / 1000.0);
+
+    // integral
+    e_rpm_integral = e_rpm_integral + e * (DELTA_T_MS / 1000.0);
+
+    // e_integral clamping
+    if (e_rpm_integral > E_INTEGRAL_MAX) e_rpm_integral = E_INTEGRAL_MAX;
+    else if (e_rpm_integral < E_INTEGRAL_MIN) e_rpm_integral = E_INTEGRAL_MIN;
+
+    // control signal
+    float u = (kp * e) + (ki * e_rpm_integral) + (kd * de_dt);
+
+    // motor speed signal
+    float u_pwm = fabs(u);
+
+    // cap it to max value
+    if(u_pwm > MAX_PWM_TICKS)
+        u_pwm = MAX_PWM_TICKS;
+
+    // motor direction
+    int dir = 1; // motor direction 1: CW, -1: CCW, 0: still
+    if (u < 0)
+        dir = -1;
+
+    //printf("kp %ld, e %d, u %ld\n", kp, e, (long) u);
+
+    // actuate command
+    Motor_set_pwm(motor, dir, (uint16_t) u_pwm);
+
+    // update motor position error
+    motor->err_rpm = e;
+
+    // store previous error
+    e_rpm_prev = e;
 }

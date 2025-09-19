@@ -35,14 +35,15 @@ void Robot_get_commands(Robot *robot) {
     if (arg_count == 0)
         return ;
 
+    // COMMAND INTERFACE:
     // [OPEN LOOP]
     // pwm <dir_motor1_left> <duty_cycle%_motor_left> <dir_motor_right> <duty_cycle%_motor_right>
     if (!strcmp(cmd_args[0], PWM_COMMAND) && arg_count == PWM_COMMAND_ARGS) {
         //printf("PWM\n");
         robot->motor_left->manual_control = 1;
         robot->motor_right->manual_control = 1;
-        Motor_set_speed(robot->motor_left, atoi(cmd_args[1]), atoi(cmd_args[2]));
-        Motor_set_speed(robot->motor_right, atoi(cmd_args[3]), atoi(cmd_args[4]));
+        Motor_set_pwm(robot->motor_left, atoi(cmd_args[1]), (uint16_t) atoi(cmd_args[2]));
+        Motor_set_pwm(robot->motor_right, atoi(cmd_args[3]), (uint16_t) atoi(cmd_args[4]));
     }
     // [CLOSED LOOP]
     // pos	<pos_motor_1> <pos_motor_2> 
@@ -50,16 +51,16 @@ void Robot_get_commands(Robot *robot) {
         //printf("POS\n");
         robot->motor_left->manual_control = 0;
         robot->motor_right->manual_control = 0;
-        robot->motor_left->target_pos = atoi(cmd_args[1]);
-        robot->motor_right->target_pos = atoi(cmd_args[2]);
+        robot->motor_left->target_pos = atol(cmd_args[1]);
+        robot->motor_right->target_pos = atol(cmd_args[2]);
     }
     // [CLOSED LOOP]
     // rpm	<rpm_motor_1> <rpm_motor_2> 
     else if (!strcmp(cmd_args[0], RPM_COMMAND) && arg_count == RPM_COMMAND_ARGS) {
         robot->motor_left->manual_control = 0;
         robot->motor_right->manual_control = 0;
-        // TODO
-        //Motor_PID_speed()
+        robot->motor_left->target_rpm = atoi(cmd_args[1]);
+        robot->motor_right->target_rpm = atoi(cmd_args[2]);
     }
     // setmotor <motor1> <motor2>
     else if (!strcmp(cmd_args[0], SETMOTOR_COMMAND) && arg_count == SETMOTOR_COMMAND_ARGS) {
@@ -68,7 +69,33 @@ void Robot_get_commands(Robot *robot) {
     }
     // gain <kp> <ki> <kd>
     else if (!strcmp(cmd_args[0], GAIN_COMMAND) && arg_count == GAIN_COMMAND_ARGS) {
-        Motor_PID_params(robot->motor_left, atoi(cmd_args[1]), atoi(cmd_args[2]), atoi(cmd_args[3]));
-        Motor_PID_params(robot->motor_right, atoi(cmd_args[1]), atoi(cmd_args[2]), atoi(cmd_args[3]));
+        Motor_PID_params(robot->motor_left, atol(cmd_args[1]), atol(cmd_args[2]), atol(cmd_args[3]));
+        Motor_PID_params(robot->motor_right, atol(cmd_args[1]), atol(cmd_args[2]), atol(cmd_args[3]));
+    }
+    // setmanual <1/0>
+    else if (!strcmp(cmd_args[0], SETMANUAL_COMMAND) && arg_count == SETMANUAL_COMMAND_ARGS) {
+        robot->motor_left->manual_control = atoi(cmd_args[1]);
+        robot->motor_right->manual_control = atoi(cmd_args[1]);
+    }
+
+
+    // direct WASD control in case manual control is active
+    else if (arg_count == 1 && robot->motor_left->manual_control && robot->motor_right->manual_control) {
+        if (!strcmp(cmd_args[0], "W")) {
+            robot->motor_left->target_pos += 10;
+            robot->motor_right->target_pos += 10;
+        }
+        else if (!strcmp(cmd_args[0], "A")) {
+            robot->motor_left->target_pos += 0;
+            robot->motor_right->target_pos += 10;
+        }
+        else if (!strcmp(cmd_args[0], "S")) {
+            robot->motor_left->target_pos -= 10;
+            robot->motor_right->target_pos -= 10;
+        }
+        else if (!strcmp(cmd_args[0], "D")) {
+            robot->motor_left->target_pos += 10;
+            robot->motor_right->target_pos += 0;
+        }
     }
 }
