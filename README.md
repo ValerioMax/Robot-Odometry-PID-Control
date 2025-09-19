@@ -127,6 +127,7 @@ Perché se il target è molto grande e u diventa molto grande allora potrebbe an
 facendo ottenere paradossalmente un segnale più piccolo!!!!!!
 --> Si potrebbe fare un check sull'errore e su e_dt oltre che su e_integral, ma bisogna tenere conto anche di kp, ki, kd
 
+-------------------------------
 
-
+TODO: Dopo un pò il pc client che plotta inizia a laggare: risolvilo
 

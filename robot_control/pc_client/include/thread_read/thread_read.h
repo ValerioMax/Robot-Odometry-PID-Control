@@ -16,6 +16,16 @@
 
 # define TSV_HEADER "pos\tp_trg\tp_err\trpm\tr_trg\tr_err"
 
-void *thread_read(void *args);
+typedef struct {
+    t_windata *windata;
+    CircularBuffer *cbuf;
+    t_info *axis_info;
+    int serial_port;
+    int fd;
+
+} taskdata;
+
+void    *thread_read(void *args);
+int     loop_task(taskdata *data);
 
 #endif

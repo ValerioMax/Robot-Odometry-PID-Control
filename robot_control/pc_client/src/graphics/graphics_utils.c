@@ -213,16 +213,3 @@ void plot_data(t_windata *windata, CircularBuffer *cbuf, t_info *axis_info) {
 	// for reasons strings have to be drawn after the rest
 	draw_info(windata->mlx, windata->win, axis_info);
 }
-
-int	key_handler(int keysym, t_info *axis_info) {
-	if (keysym == XK_Escape)
-		exit(1);
-	if (keysym == XK_z) {
-		axis_info->value_max += 10;
-	}
-	if (keysym == XK_x) {
-		axis_info->value_max -= 10;
-	}
-
-	return 0;
-}
