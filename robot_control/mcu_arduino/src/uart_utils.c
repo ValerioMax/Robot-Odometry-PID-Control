@@ -72,22 +72,42 @@ uint8_t UART_getstring_blocking(uint8_t *buf) {
 
 // per flavour faccio tutto nella ISR. Per efficienza massima (ISR più corta) sarebbe meglio solo attivare una flag
 // e aggioranre rx_buffer nel main (come con gli altri interrupt che ho settato)
+volatile char recv_byte;
 volatile uint8_t rx_buffer[MAX_BUF_SIZE];
-volatile int rx_idx = 0;
+volatile int rx_byte_ready = 0;
 volatile int rx_string_ready = 0;
+volatile int rx_idx = 0;
 
 ISR(USART0_RX_vect) {
-    char recv_byte = UDR0;
+    recv_byte = UDR0;
+    rx_byte_ready = 1;
+
+    // overflow control (this is critical, espacially for WASD continous char receiving!!!)
+    if (rx_idx >= MAX_BUF_SIZE - 1)
+        return ;
 
     rx_buffer[rx_idx++] = recv_byte;
 
     if (recv_byte == '\0')
         rx_string_ready = 1;
-    if (recv_byte == '\n' || recv_byte == '\r') {
+    else if (recv_byte == '\n' || recv_byte == '\r') {
         rx_buffer[rx_idx] = '\0';
         rx_string_ready = 1;
         rx_idx = 0;
     }
+}
+
+// NON BLOCKING, POLLING, ON INTERRUPT getchar()
+uint8_t UART_getchar_non_blocking() {
+    if (rx_byte_ready) {
+        cli();
+        rx_byte_ready = 0;
+        sei();
+
+        return recv_byte;
+    }
+
+    return 0;
 }
 
 // NON BLOCKING, POLLING, ON INTERRUPT getstring()

@@ -39,7 +39,10 @@ int main() {
     uint64_t prev_log_time = 0;
 
     while (1) {
-        Robot_get_commands(&robot);
+        if (robot.wasd_control)
+            Robot_get_wasd(&robot);
+        else
+            Robot_get_commands(&robot);
 
         // when encoder signals external interrupt is triggered
         if (external_int_enc1_occurred) {
@@ -66,7 +69,7 @@ int main() {
         // every DELTA_T_LOG_MS data gets logged on UART
         if (millis() > prev_log_time + DELTA_T_LOG_MS) {
 
-            // motor 1 everything
+            //motor 1 everything
             printf("%ld %ld %ld %d %d %d, %u\n", 
                 motor1.encoder->pos,
                 motor1.target_pos,

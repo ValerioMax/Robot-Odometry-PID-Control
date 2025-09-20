@@ -14,6 +14,7 @@ void    UART_init();
 void    UART_putchar(uint8_t c);
 uint8_t UART_getchar_blocking();
 uint8_t UART_getstring_blocking(uint8_t* buf);
+uint8_t UART_getchar_non_blocking();
 uint8_t *UART_getstring_non_blocking();
 void    UART_putstring(uint8_t *buf);
 

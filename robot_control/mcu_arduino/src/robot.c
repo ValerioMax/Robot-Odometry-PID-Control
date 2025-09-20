@@ -5,20 +5,29 @@ void Robot_init(Robot *robot, Motor *motor_left, Motor *motor_right) {
     robot->y = 0;
     robot->vx = 0;
     robot->vy = 0;
+    robot->wasd_control = 0;
     robot->motor_left = motor_left;
     robot->motor_right = motor_right;
 }
 
 void Robot_get_commands(Robot *robot) {
     // non blocking read: returns arrived string, if string didnt arrive or didnt arrive entirely returns NULL immediately
-    char *command = (char*) UART_getstring_non_blocking();
+    
+    char *command_pt = (char*) UART_getstring_non_blocking();
 
-    if (!command)
+    if (!command_pt)
         return ;
+    
+    char command[MAX_BUF_SIZE];
+    memcpy(command, command_pt, MAX_BUF_SIZE);
+    command[MAX_BUF_SIZE - 1] = '\0';
 
-    // DEBBUGGOLOS
-    // printf("arrived\n");
-    // return;
+    //printf("IN%sFIN\n", command); // DEBUG
+    
+    // remove newline (maybe i should do it directly in UART_getstring_non_blocking)
+    command[strcspn(command, "\n\r")] = '\0';
+    
+    printf("IN%sFIN\n", command); // DEBUG
 
     // parse command
     char *cmd_args[MAX_COMMAND_ARGS];
@@ -77,25 +86,38 @@ void Robot_get_commands(Robot *robot) {
         robot->motor_left->manual_control = atoi(cmd_args[1]);
         robot->motor_right->manual_control = atoi(cmd_args[1]);
     }
+    // setwasd <1/0>
+    else if (!strcmp(cmd_args[0], SETWASD_COMMAND) && arg_count == SETWASD_COMMAND_ARGS) {
+        robot->wasd_control = atoi(cmd_args[1]);
+    }
+}
 
+// direct WASD control in case manual control is active
+void Robot_get_wasd(Robot *robot) {
+    char c = UART_getchar_non_blocking();
 
-    // direct WASD control in case manual control is active
-    else if (arg_count == 1 && robot->motor_left->manual_control && robot->motor_right->manual_control) {
-        if (!strcmp(cmd_args[0], "W")) {
-            robot->motor_left->target_pos += 10;
-            robot->motor_right->target_pos += 10;
-        }
-        else if (!strcmp(cmd_args[0], "A")) {
-            robot->motor_left->target_pos += 0;
-            robot->motor_right->target_pos += 10;
-        }
-        else if (!strcmp(cmd_args[0], "S")) {
-            robot->motor_left->target_pos -= 10;
-            robot->motor_right->target_pos -= 10;
-        }
-        else if (!strcmp(cmd_args[0], "D")) {
-            robot->motor_left->target_pos += 10;
-            robot->motor_right->target_pos += 0;
-        }
+    if (!c)
+        return ;
+
+    int32_t step = 50;
+    
+    if (c == 'w') {
+        robot->motor_left->target_pos += step;
+        robot->motor_right->target_pos += step;
+    }
+    else if (c == 'a') {
+        robot->motor_left->target_pos += 0;
+        robot->motor_right->target_pos += step;
+    }
+    else if (c == 's') {
+        robot->motor_left->target_pos -= step;
+        robot->motor_right->target_pos -= step;
+    }
+    else if (c == 'd') {
+        robot->motor_left->target_pos += step;
+        robot->motor_right->target_pos += 0;
+    }
+    else if (c == 'q') {
+        robot->wasd_control = 0;
     }
 }

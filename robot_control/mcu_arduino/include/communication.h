@@ -22,3 +22,6 @@
 
 #define SETMANUAL_COMMAND "setmanual"
 #define SETMANUAL_COMMAND_ARGS 2
+
+#define SETWASD_COMMAND "setwasd"
+#define SETWASD_COMMAND_ARGS 2

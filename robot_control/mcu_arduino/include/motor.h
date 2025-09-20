@@ -8,7 +8,7 @@
 // Default PID parameters
 #define DEFAULT_KP 300
 #define DEFAULT_KI 0
-#define DEFAULT_KD 0
+#define DEFAULT_KD 15
 
 // top value for N tick resolution
 #define MAX_PWM_TICKS 65535 // 8bit: 255, 9bit: 511, 10bit: 1023, 16bit: 65535

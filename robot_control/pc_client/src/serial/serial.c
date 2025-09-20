@@ -57,6 +57,28 @@ int serial_init(const char *tty_device, int mode, int baud, int blocking, int ti
     return serial_port;
 }
 
+void set_non_canon_mode(int fd) {
+    // configure stdin to non-canonical mode
+    struct termios tty_curr;
+    tcgetattr(fd, &tty_curr);
+    tty_curr.c_lflag &= ~ICANON;
+    //tty_curr.c_lflag &= ~ECHO;
+    tcsetattr(fd, TCSANOW, &tty_curr);
+
+    printf("Non Canonical Mode. Press 'q' to quit.\n");
+}
+
+void set_canon_mode(int fd) {
+    // configure stdin to canonical mode
+    struct termios tty_curr;
+    tcgetattr(fd, &tty_curr);
+    tty_curr.c_lflag &= ICANON;
+    //tty_curr.c_lflag &= ECHO;
+    tcsetattr(fd, TCSANOW, &tty_curr);
+
+    printf("Returning to Canonical Mode.\n");
+}
+
 int serial_readline(int serial_port, char *buf) {
     int read_bytes = 0;
     int ret = 0;

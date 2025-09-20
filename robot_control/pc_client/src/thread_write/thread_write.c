@@ -32,18 +32,35 @@ void *thread_write(void *args) {
         serial_writebuf(serial_port, (const char *) line, (int) strlen(line));
         //pthread_mutex_unlock(&serial_port_mutex);
 
+        if (!strncmp(line, "setwasd 1", 9))
+            start_wasd_interface(serial_port); // TODO: MAYBE UNCOMMENT the ECHO and also use printf("%c\n") so chars are printed sempre a capo
+            
         free(line);
         line = NULL;
         len = 0;
-
-        // for (int i = -300; i < 300; i += 5) {
-        //     dprintf(serial_port, "pos %d 0\n", i);
-        //     // char buf[] = "ciaocomevatuttobene\n";
-        //     // write(serial_port, buf, strlen(buf));
-        //     usleep(50000);
-        // }
-        
     }
     
     return NULL;
+}
+
+void start_wasd_interface(int serial_port) {
+
+    set_non_canon_mode(STDIN_FILENO);
+
+    char c;
+
+    while (1) {
+        // read a single character from stdin (non blocking because termios setted like that)
+        int bytes_read = read(STDIN_FILENO, &c, 1);
+
+        if (bytes_read > 0) {
+            // immediately write the char to the serial port
+            write(serial_port, &c, 1);
+            
+            if (c == 'q') {
+                set_canon_mode(STDIN_FILENO);
+                return ;
+            }
+        }
+    }
 }

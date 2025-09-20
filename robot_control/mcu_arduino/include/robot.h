@@ -8,9 +8,13 @@ typedef struct {
     float vx;
     float vy;
 
+    // for manual control of robot itself
+    int wasd_control;
+
     Motor *motor_left;
     Motor *motor_right;
 } Robot;
 
 void Robot_init(Robot *robot, Motor *motor_left, Motor *motor_right);
 void Robot_get_commands(Robot *robot);
+void Robot_get_wasd(Robot *robot);
