@@ -27,7 +27,7 @@ void Robot_get_commands(Robot *robot) {
     // remove newline (maybe i should do it directly in UART_getstring_non_blocking)
     command[strcspn(command, "\n\r")] = '\0';
     
-    printf("IN%sFIN\n", command); // DEBUG
+    //printf("IN%sFIN\n", command); // DEBUG
 
     // parse command
     char *cmd_args[MAX_COMMAND_ARGS];

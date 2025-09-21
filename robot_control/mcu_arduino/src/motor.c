@@ -3,12 +3,6 @@
 Motor motor1 = {0};
 Motor motor2 = {0};
 
-int32_t e_pos_prev = 0;
-float e_pos_integral = 0;
-
-float e_rpm_prev = 0;
-float e_rpm_integral = 0;
-
 float rpm_filt = 0;
 float rpm_filt_prev = 0;
 
@@ -20,6 +14,10 @@ void Motor_init(Motor *motor, int in1_pin, int in2_pin, int pwm_pin, Encoder *en
     motor->target_rpm = 0;
     motor->err_pos = 0;
     motor->err_rpm = 0;
+
+    motor->e_pos_integral = 0;
+    motor->e_rpm_integral = 0;
+    
     motor->kp = DEFAULT_KP;
     motor->ki = DEFAULT_KI;
     motor->kd = DEFAULT_KD;
@@ -90,6 +88,8 @@ void Motor_PID_position(Motor *motor) {
     // get motor state values
     int32_t target_pos = motor->target_pos;
     int32_t pos = motor->encoder->pos;
+    int32_t e_pos_prev = motor->err_pos;
+    int32_t e_pos_integral = motor->e_pos_integral;
 
     // get motor PID parameters
     int32_t kp = motor->kp;
@@ -129,9 +129,7 @@ void Motor_PID_position(Motor *motor) {
 
     // update motor position error
     motor->err_pos = e;
-
-    // store previous error
-    e_pos_prev = e;
+    motor->e_pos_integral = e_pos_integral;
 }
 
 void Motor_PID_speed(Motor *motor) {
@@ -141,10 +139,14 @@ void Motor_PID_speed(Motor *motor) {
     // get motor state values
     int target_rpm = motor->target_rpm;
     int rpm = motor->encoder->rpm;
+    int e_rpm_prev = motor->err_rpm;
+    int e_rpm_integral = motor->e_rpm_integral;
 
+    // TODO: TOGLILE COME VARIABILI GLOBALI E METTILE COME ATTRIBUTO DELLA CLASSE ENCODER O MOTOR !!!!
+    //       SENNO ROMPE TUTTO CON DUE MOTORI!!!!!!!!!!!
     // low-pass filter (25 Hz cutoff frequency (w0))
-    rpm_filt = (0.854 * rpm_filt) + (0.0728 * rpm) + (0.0728 * rpm_filt_prev);
-    rpm_filt_prev = rpm; // TODO: mi sa che è  = rpm_filt (?)
+    // rpm_filt = (0.854 * rpm_filt) + (0.0728 * rpm) + (0.0728 * rpm_filt_prev);
+    // rpm_filt_prev = rpm; // TODO: mi sa che è  = rpm_filt (?)
 
     // get motor PID parameters
     int32_t kp = motor->kp;
@@ -152,7 +154,8 @@ void Motor_PID_speed(Motor *motor) {
     int32_t kd = motor->kd;
 
     // error
-    int e = target_rpm - rpm_filt;
+    //int e = target_rpm - rpm_filt; // UNCOMMENT when using Low Pass filter
+    int e = target_rpm - rpm;
 
     // derivative
     float de_dt = (e - e_rpm_prev) / (DELTA_T_MS / 1000.0);
@@ -186,7 +189,5 @@ void Motor_PID_speed(Motor *motor) {
 
     // update motor position error
     motor->err_rpm = e;
-
-    // store previous error
-    e_rpm_prev = e;
+    motor->e_rpm_integral = e_rpm_integral;    
 }

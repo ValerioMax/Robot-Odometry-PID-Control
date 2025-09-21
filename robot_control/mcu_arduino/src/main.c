@@ -56,13 +56,13 @@ int main() {
         // every DELTA_T_MS = 20ms (at 50Hz) command gets generated and actuated
         if (millis() > prev_sample_time + DELTA_T_MS) {
             Encoder_update_rpm(&encoder1, DELTA_T_MS);
-            //Encoder_update_rpm(&encoder2, DELTA_T_MS);
+            Encoder_update_rpm(&encoder2, DELTA_T_MS);
 
             Motor_PID_position(&motor1);
-            //Motor_PID_position(&motor2);
+            Motor_PID_position(&motor2);
 
-            //Motor_PID_speed(&motor1);
-            //Motor_PID_speed(&motor2);
+            // Motor_PID_speed(&motor1);
+            // Motor_PID_speed(&motor2);
 
             prev_sample_time = millis();
         }

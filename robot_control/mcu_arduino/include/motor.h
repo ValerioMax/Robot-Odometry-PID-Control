@@ -27,18 +27,22 @@ typedef struct {
     int attached;
     int manual_control;
 
-    // values
+    // state values
     int32_t target_pos;
     int target_rpm;
     int32_t err_pos;
     int err_rpm;
 
+    // state integral values for PID
+    int32_t e_pos_integral;
+    int e_rpm_integral;
+
+    Encoder *encoder;
+
     // PID parameters
     int32_t kp;
     int32_t ki;
     int32_t kd;
-
-    Encoder *encoder;
 } Motor;
 
 void Motor_init(Motor *motor, int in1, int in2, int pwm, Encoder *encoder);

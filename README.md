@@ -136,3 +136,8 @@ TODO: Dopo un pò il pc client che plotta inizia a laggare: risolvilo
 NOTA: Se usi CuteCom o altro assicurati di non essere nella mod CR/LF, perché invierebbe due new line!!
       e questo programma è scritto per riceverne solo uno per stringa: risulterebbe in due stringhe ricevute di cui una vuota ("...\n\0" e "\n\0")
 
+-------------------------------
+
+Al livello hardware siccome i due motori sono specchiati ho invertito i pin del motore a sx (avedo davanti la base del triangolo)
+Sono scambiati sia i due pin dell'encoder che del hbridge
+
