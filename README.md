@@ -116,9 +116,9 @@ NOTA: Ho problemi a usare il termine intergrale: o il clamping è sbagliato oppu
       Qualsiasi valore che metto in ki ottengo dei risultati peggiori (maggiore steady state e errore) che senza
 
 - per il controllo di velocità (NON BUONISSIMI):
-    kp = 6000
-    ki = 100
-    kd = 200
+    kp = 2500
+    ki = 2000
+    kd = 0
 
 -------------------------------
 
@@ -130,6 +130,8 @@ facendo ottenere paradossalmente un segnale più piccolo!!!!!!
 -------------------------------
 
 TODO: Dopo un pò il pc client che plotta inizia a laggare: risolvilo
+UPDATE_1: draw_info(); aumenta il laf, suppongo per il draw delle stringhe.
+          Se lo tolgo lagga di meno ma comunque un pò lagga (dopo più tempo).
 
 -------------------------------
 
@@ -141,3 +143,23 @@ NOTA: Se usi CuteCom o altro assicurati di non essere nella mod CR/LF, perché i
 Al livello hardware siccome i due motori sono specchiati ho invertito i pin del motore a sx (avedo davanti la base del triangolo)
 Sono scambiati sia i due pin dell'encoder che del hbridge
 
+-------------------------------
+
+- PID posizione: funziona bene
+- PID velocità: non funziona bene
+
+Possibili cause:
+- tempo di esecuzione del task troppo alto                  --> riducendo fa 20ms a 5ms è migliorato: vibrazione, flickering (overshoot), ampere ciucciati
+- misura degli rpm con metodo sbagliato (non efficiente)    --> no, va bene, l'altro metodo presenta altri problemi quindi è meglio questo
+- mancanza di low pass filter                               --> aggiungendolo è migliorato: vibrazione, flickering (overshoot), ampere ciucciati 
+- parametri kp,ki,kd sbagliati                              --> modificandoli è migliorato leggermente la steady state
+
+UPDATE: è migliorato ma comunque non è smooth quanto un sgnale di velocità diretto:
+        - Se gli dico "rpm 50 0"
+            --> la linea è piena di spike (motore raggiunge il target ma vibra)
+        - Se gli dico "pwm 1 13500 0 0" (equivalente di circa 50rpm)
+            --> la linea è continua eccetto leggerissimi spike (motore raggiunge il target perfettamente)
+
+Sono abbastanza sicuro sia un problema di del calcolo degli rpm (feedback del loop)
+- un'idea è di fare un average con i precedenti N valori (in sostanza potenziare il low pass filter anche a istanti prima del precedente)
+  Provare a farlo sia per gli rpm (inizio di PID_speed()) sia sul segnale di attuazione (u_pwm prima che il comando venga attutato) !!!

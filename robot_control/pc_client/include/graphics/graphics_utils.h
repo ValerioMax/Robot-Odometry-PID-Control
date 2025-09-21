@@ -7,7 +7,7 @@
 # include "shared_types.h"
 # include "circular_buffer.h"
 
-# define FRAME_WIDTH 1200
+# define FRAME_WIDTH 800
 # define FRAME_HEIGHT 700
 # define PADDING_X 60
 # define PADDING_Y 20
@@ -38,8 +38,8 @@ void		my_mlx_pixel_put(t_img *data, int x, int y, int color);
 void		window_init(t_windata *data, const char *win_name);
 void		new_image_init(t_windata *data);
 void		draw_info(void *mlx, void *win, t_info *axis_info);
-void		draw_data(t_img *img, CircularBuffer *cbuf, t_info *axis_info);
-void		plot_data(t_windata *windata, CircularBuffer *cbuf, t_info *axis_info);
+void		draw_data(t_img *img, CircularBuffer *cbuf, t_info *axis_info, int plot_pos, int plot_rpm);
+void		plot_data(t_windata *windata, CircularBuffer *cbuf, t_info *axis_info, int plot_pos, int plot_rpm);
 
 int			key_handler(int keysym, t_info *axis_info);
 

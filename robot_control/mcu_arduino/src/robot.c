@@ -6,6 +6,8 @@ void Robot_init(Robot *robot, Motor *motor_left, Motor *motor_right) {
     robot->vx = 0;
     robot->vy = 0;
     robot->wasd_control = 0;
+    robot->pos_control = 1;
+    robot->rpm_control = 0;
     robot->motor_left = motor_left;
     robot->motor_right = motor_right;
 }
@@ -58,6 +60,9 @@ void Robot_get_commands(Robot *robot) {
     // pos	<pos_motor_1> <pos_motor_2> 
     else if (!strcmp(cmd_args[0], POS_COMMAND) && arg_count == POS_COMMAND_ARGS) {
         //printf("POS\n");
+        robot->pos_control = 1;
+        robot->rpm_control = 0;
+
         robot->motor_left->manual_control = 0;
         robot->motor_right->manual_control = 0;
         robot->motor_left->target_pos = atol(cmd_args[1]);
@@ -66,6 +71,9 @@ void Robot_get_commands(Robot *robot) {
     // [CLOSED LOOP]
     // rpm	<rpm_motor_1> <rpm_motor_2> 
     else if (!strcmp(cmd_args[0], RPM_COMMAND) && arg_count == RPM_COMMAND_ARGS) {
+        robot->pos_control = 0;
+        robot->rpm_control = 1;
+    
         robot->motor_left->manual_control = 0;
         robot->motor_right->manual_control = 0;
         robot->motor_left->target_rpm = atoi(cmd_args[1]);

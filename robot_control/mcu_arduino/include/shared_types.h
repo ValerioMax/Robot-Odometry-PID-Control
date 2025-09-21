@@ -36,7 +36,7 @@
 #define DELTA_T_LOG_MS 100 // TODO: TO CHANGE
 
 // tempo di campionamento 20ms per avere freq campionamento 50Hz
-#define DELTA_T_MS 20
+#define DELTA_T_MS 5
 
 #define MAX_BUF_SIZE 200
 

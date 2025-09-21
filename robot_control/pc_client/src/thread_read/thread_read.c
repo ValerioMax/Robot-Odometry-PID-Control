@@ -3,6 +3,10 @@
 // from main.c
 extern pthread_mutex_t serial_port_mutex;
 
+// from thread_write.c
+extern int plot_pos;
+extern int plot_rpm;
+
 long long start_time_ms = 0;
 long long prev_plot_time_ms = 0;
 long long prev_log_time_ms = 0;
@@ -73,7 +77,7 @@ int loop_task(taskdata *data) {
         
         set_x_axis_info(data->axis_info, data->cbuf);
 
-        plot_data(data->windata, data->cbuf, data->axis_info);
+        plot_data(data->windata, data->cbuf, data->axis_info, plot_pos, plot_rpm);
 
         prev_plot_time_ms = millis();
     }

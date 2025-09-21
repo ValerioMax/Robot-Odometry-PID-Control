@@ -6,6 +6,8 @@
 // from main.c
 extern pthread_mutex_t serial_port_mutex;
 
+int plot_pos = 1;
+int plot_rpm = 0;
 
 void *thread_write(void *args) {
 
@@ -32,7 +34,15 @@ void *thread_write(void *args) {
         serial_writebuf(serial_port, (const char *) line, (int) strlen(line));
         //pthread_mutex_unlock(&serial_port_mutex);
 
-        if (!strncmp(line, "setwasd 1", 9))
+        if (!strncmp(line, "pos", 3)) {
+            plot_pos = 1;
+            plot_rpm = 0;
+        }
+        else if (!strncmp(line, "rpm", 3)) {
+            plot_pos = 0;
+            plot_rpm = 1;
+        }
+        else if (!strncmp(line, "setwasd 1", 9))
             start_wasd_interface(serial_port); // TODO: MAYBE UNCOMMENT the ECHO and also use printf("%c\n") so chars are printed sempre a capo
             
         free(line);

@@ -120,7 +120,7 @@ void interpolate_and_draw(t_img *img, int prev_x, int prev_y, int curr_x, int cu
     }
 }
 
-void draw_data(t_img *img, CircularBuffer *cbuf, t_info *axis_info) {	
+void draw_data(t_img *img, CircularBuffer *cbuf, t_info *axis_info, int plot_pos, int plot_rpm) {	
 	if (!cbuf)
 		return ;
 	
@@ -162,24 +162,27 @@ void draw_data(t_img *img, CircularBuffer *cbuf, t_info *axis_info) {
 			int mapped_rpm_trg = (int) map(sample.rpm_target, -axis_info->value_max, axis_info->value_max, PLANE_HEIGHT + PADDING_Y, PADDING_Y);
 			int mapped_rpm_err = (int) map(sample.rpm_error, -axis_info->value_max, axis_info->value_max, PLANE_HEIGHT + PADDING_Y, PADDING_Y);
 
-			// draw target pos
-			interpolate_and_draw(img, prev_mapped_time, prev_mapped_pos_trg, mapped_time, mapped_pos_trg, 0x0FFF00FF);
+			if (plot_pos) {
+				// draw target pos
+				interpolate_and_draw(img, prev_mapped_time, prev_mapped_pos_trg, mapped_time, mapped_pos_trg, 0x0FFF00FF);
 
-			// draw pos
-			interpolate_and_draw(img, prev_mapped_time, prev_mapped_pos, mapped_time, mapped_pos, 0x0FFFFF00);
+				// draw pos
+				interpolate_and_draw(img, prev_mapped_time, prev_mapped_pos, mapped_time, mapped_pos, 0x0FFFFF00);
 
-			// draw error pos
-			interpolate_and_draw(img, prev_mapped_time, prev_mapped_pos_err, mapped_time, mapped_pos_err, 0x0FFF0000);
+				// draw error pos
+				interpolate_and_draw(img, prev_mapped_time, prev_mapped_pos_err, mapped_time, mapped_pos_err, 0x0FFF0000);
+			}
+			if (plot_rpm) {
+				// draw target rpm
+				interpolate_and_draw(img, prev_mapped_time, prev_mapped_rpm_trg, mapped_time, mapped_rpm_trg, 0x0FFF00FF);
 
-			// // draw target rpm
-			// interpolate_and_draw(img, prev_mapped_time, prev_mapped_rpm_trg, mapped_time, mapped_rpm_trg, 0x0FFF00FF);
+				// draw rpm
+				interpolate_and_draw(img, prev_mapped_time, prev_mapped_rpm, mapped_time, mapped_rpm, 0x0FFFFF00);
 
-			// // draw rpm
-			// interpolate_and_draw(img, prev_mapped_time, prev_mapped_rpm, mapped_time, mapped_rpm, 0x0FFFFF00);
-
-			// // draw error rpm
-			// interpolate_and_draw(img, prev_mapped_time, prev_mapped_rpm_err, mapped_time, mapped_rpm_err, 0x0FFF0000);
-
+				// draw error rpm
+				interpolate_and_draw(img, prev_mapped_time, prev_mapped_rpm_err, mapped_time, mapped_rpm_err, 0x0FFF0000);
+			}
+			
 			// for interpolation
 			prev_mapped_time = mapped_time;
 
@@ -200,12 +203,12 @@ void draw_data(t_img *img, CircularBuffer *cbuf, t_info *axis_info) {
 	}
 }
 
-void plot_data(t_windata *windata, CircularBuffer *cbuf, t_info *axis_info) {
+void plot_data(t_windata *windata, CircularBuffer *cbuf, t_info *axis_info, int plot_pos, int plot_rpm) {
 	// everytime create a new image in order to completely cover previous frame
 	new_image_init(windata);
 
 	draw_grid(&windata->img);
-	draw_data(&windata->img, cbuf, axis_info);
+	draw_data(&windata->img, cbuf, axis_info, plot_pos, plot_rpm);
 
 	// draw the image pixels on the window
 	mlx_put_image_to_window(windata->mlx, windata->win, windata->img.img, 0, 0);

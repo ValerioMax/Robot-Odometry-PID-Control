@@ -10,6 +10,8 @@ typedef struct {
 
     // for manual control of robot itself
     int wasd_control;
+    int pos_control;
+    int rpm_control;
 
     Motor *motor_left;
     Motor *motor_right;

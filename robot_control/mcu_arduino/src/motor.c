@@ -4,7 +4,7 @@ Motor motor1 = {0};
 Motor motor2 = {0};
 
 float rpm_filt = 0;
-float rpm_filt_prev = 0;
+float rpm_prev = 0;
 
 void Motor_init(Motor *motor, int in1_pin, int in2_pin, int pwm_pin, Encoder *encoder) {
     motor->in1_pin = in1_pin;
@@ -145,8 +145,8 @@ void Motor_PID_speed(Motor *motor) {
     // TODO: TOGLILE COME VARIABILI GLOBALI E METTILE COME ATTRIBUTO DELLA CLASSE ENCODER O MOTOR !!!!
     //       SENNO ROMPE TUTTO CON DUE MOTORI!!!!!!!!!!!
     // low-pass filter (25 Hz cutoff frequency (w0))
-    // rpm_filt = (0.854 * rpm_filt) + (0.0728 * rpm) + (0.0728 * rpm_filt_prev);
-    // rpm_filt_prev = rpm; // TODO: mi sa che è  = rpm_filt (?)
+    rpm_filt = (0.854 * rpm_filt) + (0.0728 * rpm) + (0.0728 * rpm_prev);
+    rpm_prev = rpm;
 
     // get motor PID parameters
     int32_t kp = motor->kp;
@@ -154,8 +154,8 @@ void Motor_PID_speed(Motor *motor) {
     int32_t kd = motor->kd;
 
     // error
-    //int e = target_rpm - rpm_filt; // UNCOMMENT when using Low Pass filter
-    int e = target_rpm - rpm;
+    int e = target_rpm - rpm_filt; // UNCOMMENT when using Low Pass filter
+    //int e = target_rpm - rpm;
 
     // derivative
     float de_dt = (e - e_rpm_prev) / (DELTA_T_MS / 1000.0);
