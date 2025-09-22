@@ -13,6 +13,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+#define PI 3.14159265358979323846
+
 // TODO: è meglio usare una enum forse
 // i will use them in the code to make things clearer
 #define PORT_A 1

@@ -1,6 +1,9 @@
 #include "robot.h"
 
-void Robot_init(Robot *robot, Motor *motor_left, Motor *motor_right) {
+void Robot_init(Robot *robot, Motor *motor_left, Motor *motor_right, float wheel_radius, float wheel_circ) {
+    robot->Rw = wheel_radius;
+    robot->wheel_circ = wheel_circ;
+    robot->theta = 0;
     robot->x = 0;
     robot->y = 0;
     robot->vx = 0;
@@ -128,4 +131,72 @@ void Robot_get_wasd(Robot *robot) {
     else if (c == 'q') {
         robot->wasd_control = 0;
     }
+}
+
+// // from encoder readings compute the arc of circumpherence (delta_p) did by the center of the wheels
+// // and the angle (delta_theta) done along the "circonferenza osculatrice" of the arc percurrend in current in last iteration 
+// void Robot_compute_arc_and_theta(Robot *robot) {
+//     float d_pl = (float) Encoder_get_tick_diff(robot->motor_left->encoder);
+//     float d_pr = (float) Encoder_get_tick_diff(robot->motor_right->encoder);
+    
+//     robot->d_p = (d_pr + d_pl) / 2;
+//     robot->d_theta = abs(d_pr - d_pl) / (2 * robot->Rw);
+// }
+
+// // from delta_p and delta_t computes current delta_x, delta_y and sets delta_x, delta_y, delta_theta 
+// void Robot_m2t(Robot *robot) {
+//     // t = [d_x, d_y]'
+//     robot->d_x = robot->d_p * (sin(robot->d_theta) / robot->d_theta);
+//     robot->d_y = robot->d_p * ((1 - cos(robot->d_theta)) / robot->d_theta);
+// }
+
+void Robot_update_odometry(Robot *robot) {
+    float theta = robot->theta;
+
+    float d_tick_l = robot->motor_left->encoder->pos_diff;
+    float d_tick_r = robot->motor_right->encoder->pos_diff;
+    
+    float d_pl = (d_tick_l * robot->wheel_circ) / TICKS_PER_REV;
+    float d_pr = (d_tick_r * robot->wheel_circ) / TICKS_PER_REV;
+
+    float d_p = (d_pr + d_pl) / 2.0;
+    float d_theta = (d_pr - d_pl) / (2.0 * robot->Rw);
+
+    float d_x_local;
+    float d_y_local;
+
+    // Handle della divisione per 0 (ESSENZIALE se no succede un casino)
+    // TODO: POI MAGARI USA LO SVILUPPO DI TAYLOR che non ha denominatori
+    if (fabs(d_theta) < 0.000001) {
+        d_x_local = d_p;
+        d_y_local = 0;
+    }
+    else {
+        d_x_local = d_p * (sin(d_theta) / d_theta);
+        d_y_local = d_p * ((1 - cos(d_theta)) / d_theta);
+    }
+
+    // Xnew = Xold + R(theta_ass) * t
+    robot->x = robot->x + (cos(theta) * d_x_local - sin(theta) * d_y_local);
+    robot->y = robot->y + (sin(theta) * d_x_local + cos(theta) * d_y_local);
+
+    robot->theta += d_theta;
+
+    printf("dtk %d %d, dp %ld %ld, dth %d, dxy %d %d, cs %d %d, xy %d.%03d %d.%03d, theta %d.%03d\n",
+        (int) d_tick_l,
+        (int) d_tick_r,
+        (int32_t) (d_pl*1000),
+        (int32_t) (d_pr*1000),
+        (int) (d_theta*10000),
+        (int) (d_x_local*10000),
+        (int) (d_y_local*10000),
+        (int) ((cos(theta) * d_x_local - sin(theta) * d_y_local) * 1000),
+        (int) ((sin(theta) * d_x_local + cos(theta) * d_y_local) * 1000),
+        (int) robot->x,
+        (int) (fabs(robot->x - (int)robot->x) * 1000),
+        (int) robot->y,
+        (int) (fabs(robot->y - (int)robot->y) * 1000),
+        (int) robot->theta,
+        (int) (fabs(robot->theta - (int)robot->theta) * 1000)
+    ); 
 }

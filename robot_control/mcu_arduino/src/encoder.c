@@ -68,7 +68,10 @@ void Encoder_update_rpm(Encoder *encoder, int time_passed_ms) {
     // velocity in rpm
     encoder->rpm = (v_tick * 60.0) / TICKS_PER_REV;
 
+    encoder->pos_diff = encoder->pos - encoder->pos_prev; // used for odometry
+
     encoder->pos_prev = encoder->pos;
 
     //printf("v_tick %ld, encrpm %ld\n", (long) v_tick, (long) encoder->rpm);
 }
+

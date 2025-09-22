@@ -12,7 +12,8 @@ typedef struct {
     int port; // port of pin_a and pin_b (we assume they are in same port)
 
     int32_t pos;        // current measured rpm
-    int32_t pos_prev;   // only used to compute rpm
+    int32_t pos_prev;   // only used to compute rpm and for odometry
+    int32_t pos_diff;   // ticks done since last reading
     int rpm;            // current measured rpm
     int dir;            // current measured dir
 } Encoder;

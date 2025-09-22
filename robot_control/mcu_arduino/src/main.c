@@ -33,7 +33,7 @@ int main() {
     Motor_init(&motor1, PA1, PA3, PH3, &encoder1);
     Motor_init(&motor2, PA0, PA2, PH4, &encoder2);
 
-    Robot_init(&robot, &motor1, &motor2);
+    Robot_init(&robot, &motor1, &motor2, 30.0, 28.9); // NOTE: measured empirically distance between wheels is 30.0cm
 
     uint64_t prev_sample_time = 0;
     uint64_t prev_log_time = 0;
@@ -58,14 +58,16 @@ int main() {
             Encoder_update_rpm(&encoder1, DELTA_T_MS);
             Encoder_update_rpm(&encoder2, DELTA_T_MS);
 
-            if (robot.pos_control) {
-                Motor_PID_position(&motor1);
-                Motor_PID_position(&motor2);
-            }
-            else if (robot.rpm_control) {
-                Motor_PID_speed(&motor1);
-                //Motor_PID_speed(&motor2);
-            }
+            // if (robot.pos_control) {
+            //     Motor_PID_position(&motor1);
+            //     Motor_PID_position(&motor2);
+            // }
+            // else if (robot.rpm_control) {
+            //     Motor_PID_speed(&motor1);
+            //     Motor_PID_speed(&motor2);
+            // }
+
+            Robot_update_odometry(&robot);
 
             prev_sample_time = millis();
         }
@@ -73,7 +75,7 @@ int main() {
         if (millis() > prev_log_time + DELTA_T_LOG_MS) {
 
             //motor 1 everything
-            printf("%ld %ld %ld %d %d %d, %u\n", 
+            printf("%ld %ld %ld %d %d %d, %u,,, \n", 
                 motor1.encoder->pos,
                 motor1.target_pos,
                 motor1.err_pos,
@@ -81,6 +83,10 @@ int main() {
                 motor1.target_rpm,
                 motor1.err_rpm,
                 OCR4A
+
+                // (int) robot.theta,
+                // (int) robot.x,
+                // (int) robot.y
             );
 
             // printf("%d %d %d\n", 

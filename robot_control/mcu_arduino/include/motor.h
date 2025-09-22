@@ -37,6 +37,10 @@ typedef struct {
     int32_t e_pos_integral;
     int e_rpm_integral;
 
+    // state values to compute low pass filter
+    int rpm_prev;
+    int rpm_filt;
+
     Encoder *encoder;
 
     // PID parameters

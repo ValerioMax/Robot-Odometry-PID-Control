@@ -163,3 +163,15 @@ UPDATE: è migliorato ma comunque non è smooth quanto un sgnale di velocità di
 Sono abbastanza sicuro sia un problema di del calcolo degli rpm (feedback del loop)
 - un'idea è di fare un average con i precedenti N valori (in sostanza potenziare il low pass filter anche a istanti prima del precedente)
   Provare a farlo sia per gli rpm (inizio di PID_speed()) sia sul segnale di attuazione (u_pwm prima che il comando venga attutato) !!!
+
+-------------------------------
+
+Controllo con WASD funziona bene
+Provato anche con alimentazione con batterie ma penso che con un alcalina da 9V non arrivi abbastanza corrente all'esp
+
+Ho sperimentato che a un certo punto si interrompe la comunicazione 
+e penso sia colpa del fatto che a un certo punto l'esp si scollega
+
+-------------------------------
+
+NOTA: esp e arduino vogliono il common ground, altrimenti non comunicano!!!!!!

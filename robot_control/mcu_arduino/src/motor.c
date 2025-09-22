@@ -3,9 +3,6 @@
 Motor motor1 = {0};
 Motor motor2 = {0};
 
-float rpm_filt = 0;
-float rpm_prev = 0;
-
 void Motor_init(Motor *motor, int in1_pin, int in2_pin, int pwm_pin, Encoder *encoder) {
     motor->in1_pin = in1_pin;
     motor->in2_pin = in2_pin;
@@ -17,6 +14,9 @@ void Motor_init(Motor *motor, int in1_pin, int in2_pin, int pwm_pin, Encoder *en
 
     motor->e_pos_integral = 0;
     motor->e_rpm_integral = 0;
+
+    motor->rpm_prev = 0;
+    motor->rpm_filt = 0;
     
     motor->kp = DEFAULT_KP;
     motor->ki = DEFAULT_KI;
@@ -141,6 +141,8 @@ void Motor_PID_speed(Motor *motor) {
     int rpm = motor->encoder->rpm;
     int e_rpm_prev = motor->err_rpm;
     int e_rpm_integral = motor->e_rpm_integral;
+    int rpm_filt = motor->rpm_filt;
+    int rpm_prev = motor->rpm_prev;
 
     // TODO: TOGLILE COME VARIABILI GLOBALI E METTILE COME ATTRIBUTO DELLA CLASSE ENCODER O MOTOR !!!!
     //       SENNO ROMPE TUTTO CON DUE MOTORI!!!!!!!!!!!
@@ -190,4 +192,7 @@ void Motor_PID_speed(Motor *motor) {
     // update motor position error
     motor->err_rpm = e;
     motor->e_rpm_integral = e_rpm_integral;    
+
+    motor->rpm_filt = rpm_filt;
+    motor->rpm_prev = rpm_prev;
 }
