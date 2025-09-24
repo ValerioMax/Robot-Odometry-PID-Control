@@ -18,12 +18,19 @@ ISR(PCINT0_vect) {
     uint8_t rising_edge_pins = changed_pins & current_portb_state;
     
     // check if ENCA for encoder 1 changed
-    if (rising_edge_pins & ((1 << encoder1.pin_a)))
-        external_int_enc1_occurred = 1;
-
+    if (rising_edge_pins & ((1 << encoder1.pin_a))) {
+        if (PINB & (1 << encoder1.pin_b)) {
+            encoder1.pos++;
+            encoder1.dir = 1;
+        }
+    }
     // check if ENCA for encoder 2 changed
-    if (rising_edge_pins & (1 << encoder2.pin_a))
-        external_int_enc2_occurred = 1;
+    else if (rising_edge_pins & (1 << encoder2.pin_a)) {
+        if (PINB & (1 << encoder2.pin_b)) {
+            encoder2.pos++;
+            encoder2.dir = 1;
+        }
+    }
 
     // store the new state for the next interrupt
     previous_portb_state = current_portb_state;
@@ -43,21 +50,21 @@ void Encoder_init(Encoder *encoder, int pin_a, int pin_b, int port) {
     external_int_PCINT_init(mask, port);
 }
 
-void Encoder_read(Encoder *encoder) {
-    const int mask = (1 << encoder->pin_b);
+// void Encoder_read(Encoder *encoder) {
+//     const int mask = (1 << encoder->pin_b);
 
-    // read ENCB pin state
-    int b = !((PINB & mask) == 0); // not per via del pullup // little hardcoded for PORTB
+//     // read ENCB pin state
+//     int b = !((PINB & mask) == 0); // not per via del pullup // little hardcoded for PORTB
 
-    if (b) {
-        encoder->pos++;
-        encoder->dir = 1;
-    }
-    else {
-        encoder->pos--;
-        encoder->dir = -1;
-    }       
-}
+//     if (b) {
+//         encoder->pos++;
+//         encoder->dir = 1;
+//     }
+//     else {
+//         encoder->pos--;
+//         encoder->dir = -1;
+//     }       
+// }
 
 void Encoder_update_rpm(Encoder *encoder, int time_passed_ms) {
     // TODO: maybe use abs() cause dir is already specified

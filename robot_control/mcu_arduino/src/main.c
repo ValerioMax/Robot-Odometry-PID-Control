@@ -33,7 +33,7 @@ int main() {
     Motor_init(&motor1, PA1, PA3, PH3, &encoder1);
     Motor_init(&motor2, PA0, PA2, PH4, &encoder2);
 
-    Robot_init(&robot, &motor1, &motor2, 30.0, 28.9); // NOTE: measured empirically distance between wheels is 30.0cm
+    Robot_init(&robot, &motor1, &motor2, 15.0, 28.9); // NOTE: measured empirically distance between wheels is 30.0cm and wheel circumpherence 28.9cm
 
     uint64_t prev_sample_time = 0;
     uint64_t prev_log_time = 0;
@@ -44,15 +44,16 @@ int main() {
         else
             Robot_get_commands(&robot);
 
-        // when encoder signals external interrupt is triggered
-        if (external_int_enc1_occurred) {
-            external_int_enc1_occurred = 0;
-            Encoder_read(&encoder1); // read encoder motor 1
-        }
-        if (external_int_enc2_occurred) {
-            external_int_enc2_occurred = 0;
-            Encoder_read(&encoder2); // read encoder motor 2
-        }
+        // // when encoder signals external interrupt is triggered
+        // if (external_int_enc1_occurred) {
+        //     external_int_enc1_occurred = 0;
+        //     Encoder_read(&encoder1); // read encoder motor 1
+        // }
+        // if (external_int_enc2_occurred) {
+        //     external_int_enc2_occurred = 0;
+        //     Encoder_read(&encoder2); // read encoder motor 2
+        // }
+
         // every DELTA_T_MS = 20ms (at 50Hz) command gets generated and actuated
         if (millis() > prev_sample_time + DELTA_T_MS) {
             Encoder_update_rpm(&encoder1, DELTA_T_MS);
@@ -67,27 +68,31 @@ int main() {
             //     Motor_PID_speed(&motor2);
             // }
 
+            // long start_time = (long) millis();
             Robot_update_odometry(&robot);
+            // long end_time = (long) millis();
+            // long elapsed_time = end_time - start_time;
+            // printf("took %ld\n", elapsed_time);
 
             prev_sample_time = millis();
         }
         // every DELTA_T_LOG_MS data gets logged on UART
-        if (millis() > prev_log_time + DELTA_T_LOG_MS) {
-
+        if (millis() > prev_log_time + DELTA_T_LOG_MS + 10900) {
+            printf("%ld, %ld, %ld\n", motor1.encoder->pos, motor2.encoder->pos, (long)(robot.theta*1000));
             //motor 1 everything
-            printf("%ld %ld %ld %d %d %d, %u,,, \n", 
-                motor1.encoder->pos,
-                motor1.target_pos,
-                motor1.err_pos,
-                motor1.encoder->rpm,
-                motor1.target_rpm,
-                motor1.err_rpm,
-                OCR4A
+            // printf("%ld %ld %ld %d %d %d, %u,,, %ld %ld %ld\n", 
+            //     motor1.encoder->pos,
+            //     motor1.target_pos,
+            //     motor1.err_pos,
+            //     motor1.encoder->rpm,
+            //     motor1.target_rpm,
+            //     motor1.err_rpm,
+            //     OCR4A,
 
-                // (int) robot.theta,
-                // (int) robot.x,
-                // (int) robot.y
-            );
+            //     (long) (robot.x * 1000),
+            //     (long) (robot.y * 1000),
+            //     (long) (robot.theta * 1000)
+            // );
 
             // printf("%d %d %d\n", 
             //     motor1.encoder->pos,
