@@ -164,7 +164,7 @@ void Robot_update_odometry(Robot *robot) {
     // [ (robot->wheel_circ / TICKS_PER_REV) è il valore "nominale", poi però va calibrato ]
     float kl = 0.014792;    // 0.013136;
     float kr = 0.014792;    // 0.013136;
-    float b = 29.5;         // 28.6;         //33.0;         // 31.304;       // 30.0;
+    float b = 31.87;        //31.0;         //29.5;         // 30.0;
 
     // W CALIBRATION
     float d_pl = kl * d_tick_l;

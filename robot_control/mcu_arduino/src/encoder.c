@@ -23,12 +23,20 @@ ISR(PCINT0_vect) {
             encoder1.pos++;
             encoder1.dir = 1;
         }
+        else {
+            encoder1.pos--;
+            encoder1.dir = -1;
+        }
     }
     // check if ENCA for encoder 2 changed
     else if (rising_edge_pins & (1 << encoder2.pin_a)) {
         if (PINB & (1 << encoder2.pin_b)) {
             encoder2.pos++;
             encoder2.dir = 1;
+        }
+        else {
+            encoder2.pos--;
+            encoder2.dir = -1;
         }
     }
 

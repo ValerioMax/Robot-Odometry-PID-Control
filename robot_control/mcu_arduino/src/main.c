@@ -77,8 +77,14 @@ int main() {
             prev_sample_time = millis();
         }
         // every DELTA_T_LOG_MS data gets logged on UART
-        if (millis() > prev_log_time + DELTA_T_LOG_MS + 10900) {
-            printf("%ld, %ld, %ld\n", motor1.encoder->pos, motor2.encoder->pos, (long)(robot.theta*1000));
+        if (millis() > prev_log_time + DELTA_T_LOG_MS + 20900) {
+            printf("%ld %ld, %ld %ld %ld\n", 
+                motor1.encoder->pos,
+                motor2.encoder->pos,
+                (long) (robot.x * 1000),
+                (long) (robot.y * 1000),
+                (long)(robot.theta*1000)
+            );
             //motor 1 everything
             // printf("%ld %ld %ld %d %d %d, %u,,, %ld %ld %ld\n", 
             //     motor1.encoder->pos,
