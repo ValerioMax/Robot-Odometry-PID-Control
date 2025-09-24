@@ -81,7 +81,7 @@ void Motor_PID_params(Motor *motor, int32_t kp, int32_t ki, int32_t kd) {
     motor->kd = kd;
 }
 
-void Motor_PID_position(Motor *motor) {
+void Motor_PID_position(Motor *motor, uint64_t time_passed_us) {
     if (motor->manual_control)
         return ;
 
@@ -100,10 +100,10 @@ void Motor_PID_position(Motor *motor) {
     int32_t e = target_pos - pos;
 
     // derivative
-    float de_dt = (e - e_pos_prev) / (DELTA_T_MS / 1000.0);
+    float de_dt = (e - e_pos_prev) / (time_passed_us / 1000000.0);
 
     // integral
-    e_pos_integral = e_pos_integral + e * (DELTA_T_MS / 1000.0);
+    e_pos_integral = e_pos_integral + e * (time_passed_us / 1000000.0);
 
     // e_integral clamping
     if (e_pos_integral > E_INTEGRAL_MAX) e_pos_integral = E_INTEGRAL_MAX;
@@ -132,7 +132,7 @@ void Motor_PID_position(Motor *motor) {
     motor->e_pos_integral = e_pos_integral;
 }
 
-void Motor_PID_speed(Motor *motor) {
+void Motor_PID_speed(Motor *motor, uint64_t time_passed_us) {
     if (motor->manual_control)
         return ;
 
@@ -160,10 +160,10 @@ void Motor_PID_speed(Motor *motor) {
     //int e = target_rpm - rpm;
 
     // derivative
-    float de_dt = (e - e_rpm_prev) / (DELTA_T_MS / 1000.0);
+    float de_dt = (e - e_rpm_prev) / (time_passed_us / 1000000.0);
 
     // integral
-    e_rpm_integral = e_rpm_integral + e * (DELTA_T_MS / 1000.0);
+    e_rpm_integral = e_rpm_integral + e * (time_passed_us / 1000000.0);
 
     // e_integral clamping
     if (e_rpm_integral > E_INTEGRAL_MAX) e_rpm_integral = E_INTEGRAL_MAX;

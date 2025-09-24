@@ -2,34 +2,45 @@
 #include "peripherals_utils.h"
 
 // [BEGIN] INTERNAL INTERRUPT ------------------------------------------
-uint64_t internal_int_count = 0;
-
-ISR(TIMER1_COMPA_vect) {
-    internal_int_count++;
-}
+volatile uint64_t timer1_overflow_count = 0;
 
 void timer_internal_init() {
-    // Usiamo timer 1 per implementare la funzione millis()
-
-    // setta prescaler a 1024
+    // Set Timer 1 to Normal Mode
     TCCR1A = 0;
-    TCCR1B = (1 << WGM12) | (1 << CS10) | (1 << CS12);
+    TCCR1B = 0;
 
-    // clock = 16MHz , prescaler = 1024 --> freq = 16M / 1024 = 15625
-    // Ogni secondo il timer fa 15625 tick
-    // Se voglio un evento ogni k secondi deve essere OCR = 15625 * k
-    uint16_t ocrval = (uint16_t) (15.625);
+    // Set prescaler to 8
+    TCCR1B |= (1 << CS11);
 
-    OCR1A = ocrval;
+    // Enable Timer 1 overflow interrupt
+    TIMSK1 |= (1 << TOIE1);
 
-    cli(); // disabilita interrupt
-    TIMSK1 |= (1 << OCIE1A); // abilita possibilità del timer di provocare interrupt
-    sei(); // riabilita interrupt
+    // Reset the counter
+    TCNT1 = 0;
 }
 
-// return milliseconds passed since start of the program
-uint64_t millis() {
-    return internal_int_count;
+// Interrupt Service Routine for Timer 1 Overflow
+ISR(TIMER1_OVF_vect) {
+    timer1_overflow_count++;
+}
+
+// returns microseconds passed since call of timer_internal_init()
+uint64_t micros() {
+    uint64_t overflow_count_before;
+    uint64_t overflow_count;
+    uint16_t timer_val;
+
+    // CONDIZIONE RARA: timer_val e overflow_count sono letti non atomicamente quindi se subito dopo aver letto timer_val il timer fa overflow
+    //                  si considereranno timer_val tick in più 
+    // SOLUZIONE: prima di andare avanti bisogna continuare a leggere timer_val fino a che l'overflow_count è lo stesso che c'era prima di leggere
+    do {
+        overflow_count_before = timer1_overflow_count;
+        timer_val = TCNT1;
+        overflow_count = timer1_overflow_count;
+    } while (overflow_count_before != overflow_count);
+
+    // Timer1 settato per fare 1 tick ogni 0.5us --> dividi per 2
+    return (overflow_count * 65536 + timer_val) / 2;
 }
 // [END] ---------------------------------------------------------------
 

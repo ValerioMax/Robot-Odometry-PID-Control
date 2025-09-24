@@ -5,7 +5,7 @@
 
 // INTERNAL INTERRUPT
 void        timer_internal_init();
-uint64_t    millis();
+uint64_t    micros();
 
 // EXTERNAL INTERRUPT
 void        external_int_PCINT_init(const uint8_t pin_mask, int port);

@@ -53,7 +53,7 @@ void Motor_init(Motor *motor, int in1, int in2, int pwm, Encoder *encoder);
 void Motor_attach(Motor *motor, int state);
 void Motor_set_pwm(Motor *motor, int dir, uint16_t duty_cycle);
 void Motor_PID_params(Motor *motor, int32_t kp, int32_t ki, int32_t kd);
-void Motor_PID_position(Motor *motor);
-void Motor_PID_speed(Motor *motor);
+void Motor_PID_position(Motor *motor, uint64_t time_passed_us);
+void Motor_PID_speed(Motor *motor, uint64_t time_passed_us);
 
 //#endif

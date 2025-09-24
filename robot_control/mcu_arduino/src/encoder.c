@@ -74,11 +74,11 @@ void Encoder_init(Encoder *encoder, int pin_a, int pin_b, int port) {
 //     }       
 // }
 
-void Encoder_update_rpm(Encoder *encoder, int time_passed_ms) {
+void Encoder_update_rpm(Encoder *encoder, uint64_t time_passed_us) {
     // TODO: maybe use abs() cause dir is already specified
 
     // velocity in tick/s
-    float v_tick = (encoder->pos - encoder->pos_prev) / (time_passed_ms / 1000.0);
+    float v_tick = (encoder->pos - encoder->pos_prev) / (time_passed_us / 1000000.0);
 
     // velocity in rpm
     encoder->rpm = (v_tick * 60.0) / TICKS_PER_REV;
