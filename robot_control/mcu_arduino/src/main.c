@@ -29,7 +29,7 @@ int main() {
     Motor_init(&motor1, PA1, PA3, PH3, &encoder1);
     Motor_init(&motor2, PA0, PA2, PH4, &encoder2);
 
-    Robot_init(&robot, &motor1, &motor2, 15.0, 28.9); // NOTE: measured empirically distance between wheels is 30.0cm and wheel circumpherence 28.9cm
+    Robot_init(&robot, &motor1, &motor2, 31.87, 0.014792, 0.014792); // nominal (measured empirically): b = 30.0cm, kr = kl = 0.013136 [ d_pl = (d_tick_l * robot->wheel_circ) / TICKS_PER_REV; ]
 
     uint64_t prev_log_time = 0;
     uint64_t prev_loop_time = 0;
@@ -55,22 +55,31 @@ int main() {
             Motor_PID_speed(&motor2, time_passed_us);
         }
 
-        Robot_update_odometry(&robot);
+        Robot_update_odometry_taylor(&robot);
 
         // every DELTA_T_LOG_US data gets logged on UART
-        if (micros() > prev_log_time + 20000000) { // + DELTA_T_LOG_US
+        if (micros() > prev_log_time + 1000000) { // DELTA_T_LOG_US
             prev_log_time = micros();
             
-            printf("%ld %ld, %ld %ld %ld\n", 
+            // robot odometry logging
+            printf("%ld %ld, %d %d %d\n",
                 motor1.encoder->pos,
                 motor2.encoder->pos,
-                (long) (robot.x * 1000),
-                (long) (robot.y * 1000),
-                (long)(robot.theta*1000)
+                (int) (robot.x),           // in cm
+                (int) (robot.y),           // in cm
+                (int) (robot.theta*57.324) // in degrees (180 / 3.14 = 57.324)
             );
 
-            //motor 1 everything
-            // printf("%ld %ld %ld %d %d %d, %u,,, %ld %ld %ld\n", 
+            // motor 1 & 2 logging
+            // printf("%ld %d %ld %d\n", 
+            //     motor1.encoder->pos,
+            //     motor1.encoder->rpm,
+            //     motor2.encoder->pos,
+            //     motor2.encoder->rpm
+            // );
+
+            // motor 1 logging
+            // printf("%ld %ld %ld %d %d %d, %u\n", 
             //     motor1.encoder->pos,
             //     motor1.target_pos,
             //     motor1.err_pos,
@@ -78,21 +87,18 @@ int main() {
             //     motor1.target_rpm,
             //     motor1.err_rpm,
             //     OCR4A,
-
-            //     (long) (robot.x * 1000),
-            //     (long) (robot.y * 1000),
-            //     (long) (robot.theta * 1000)
             // );
 
-            // printf("%d %d %d\n", 
-            //     motor1.encoder->pos,
-            //     motor1.target_pos,
-            //     motor1.err_pos);
-
-            // printf("%d %d %d\n", 
-            //     motor1.encoder->rpm,
-            //     motor1.target_rpm,
-            //     motor1.err_rpm);
+            // motor 2 logging
+            // printf("%ld %ld %ld %d %d %d, %u\n", 
+            //     motor2.encoder->pos,
+            //     motor2.target_pos,
+            //     motor2.err_pos,
+            //     motor2.encoder->rpm,
+            //     motor2.target_rpm,
+            //     motor2.err_rpm,
+            //     OCR4B,
+            // );
         }
     }
 }

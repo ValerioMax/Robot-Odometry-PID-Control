@@ -183,3 +183,19 @@ The problem is that sometimes the bytes get lost in the communication resulting 
 
 Il problema dei byte persi avvieni molto di più con il monitor serial di VSCode rispetto a quello di CuteCom, perché è meno efficiente.
 --> Per risolvere dovrei implementare un sistema di ACKnowledgement per sincronizzare pc client con Arduino
+
+-------------------------------
+
+PROBLEMA con l'alimentazione:
+Se uso un'alimentazione comune tra motori e arduino e esp ogni tanto si blocca la comunicazione.
+Se uso alimentazioni separate NON succede mai.
+Succede ad esempio quando camibio all'improvviso il verso di rotazione dei motori.
+--> Suppongo che lo sbalzo di corrente/tensione che si crea ricadendo anche sull'Arduino va a fargli resettare il programma mandando spezzando la comunicazione
+
+NOTA: se le alimentazioni sono separate ci sono casi in cui il problema persiste:
+- alimentando l'arduino con il l'alimentatore da banco va bene senza dare problemi
+- alimentando l'arduino con una pila da 9V alcalina ogni tanto capita
+(in questo caso perché la pila da 9V non riesce a fornire abbastanza corrente per arduino e esp insieme suppongo
+ e quindi quando c'è uno spike di corrente richiesta da loro due che però non può venire soddisfatta (essendo poco potente la pila) si resettano)
+
+--> dovrei usare un buck o un DCDC che stabilizza la Vin dell'Arduino oppure usare batterie separate

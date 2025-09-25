@@ -66,7 +66,7 @@ void start_wasd_interface(int serial_port) {
         if (bytes_read > 0) {
             // immediately write the char to the serial port
             write(serial_port, &c, 1);
-            printf("%c\n", c);
+            //printf("%c\n", c);
             
             if (c == 'q') {
                 set_canon_mode(STDIN_FILENO);

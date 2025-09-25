@@ -1,16 +1,20 @@
 #include "robot.h"
 
-void Robot_init(Robot *robot, Motor *motor_left, Motor *motor_right, float wheel_radius, float wheel_circ) {
-    robot->Rw = wheel_radius;
-    robot->wheel_circ = wheel_circ;
+void Robot_init(Robot *robot, Motor *motor_left, Motor *motor_right, float b, float kr, float kl) {
+    robot->b = b;
+    robot->kr = kr;
+    robot->kl = kl;
+
     robot->theta = 0;
     robot->x = 0;
     robot->y = 0;
     robot->vx = 0;
     robot->vy = 0;
+
     robot->wasd_control = 0;
     robot->pos_control = 1;
     robot->rpm_control = 0;
+
     robot->motor_left = motor_left;
     robot->motor_right = motor_right;
 }
@@ -156,24 +160,18 @@ void Robot_update_odometry(Robot *robot) {
     float d_tick_l = robot->motor_left->encoder->pos_diff;
     float d_tick_r = robot->motor_right->encoder->pos_diff;
     
-    // float d_pl = (d_tick_l * robot->wheel_circ) / TICKS_PER_REV;
-    // float d_pr = (d_tick_r * robot->wheel_circ) / TICKS_PER_REV;
-    
     // CALIBRATION PARAMS
     // these in ideal case are (robot->wheel_circ / TICKS_PER_REV) but could be different so we got to calibrate them
     // [ (robot->wheel_circ / TICKS_PER_REV) è il valore "nominale", poi però va calibrato ]
-    float kl = 0.014792;    // 0.013136;
-    float kr = 0.014792;    // 0.013136;
-    float b = 31.87;        //31.0;         //29.5;         // 30.0;
+    float b = robot->b;
+    float kr = robot->kr;
+    float kl = robot->kl;
 
-    // W CALIBRATION
     float d_pl = kl * d_tick_l;
     float d_pr = kr * d_tick_r;
 
-    float d_p = (d_pr + d_pl) / 2.0;
-    // float d_theta = (d_pr - d_pl) / (2.0 * robot->Rw); // computes in radians
+    float d_p = (d_pr + d_pl) / 2.0; // computes in radians
 
-    // W CALIBRATION
     float d_theta = (d_pr - d_pl) / b;
 
     float d_x_local;
@@ -195,48 +193,26 @@ void Robot_update_odometry(Robot *robot) {
     robot->y = robot->y + (sin(theta) * d_x_local + cos(theta) * d_y_local);
 
     robot->theta += d_theta;
-
-    // printf("dtk %d %d, dp %ld %ld, dth %d, dxy %d %d, cs %d %d, xy %d.%03d %d.%03d, theta %d.%03d\n",
-    //     (int) d_tick_l,
-    //     (int) d_tick_r,
-    //     (int32_t) (d_pl*1000),
-    //     (int32_t) (d_pr*1000),
-    //     (int) (d_theta*10000),
-    //     (int) (d_x_local*10000),
-    //     (int) (d_y_local*10000),
-    //     (int) ((cos(theta) * d_x_local - sin(theta) * d_y_local) * 1000),
-    //     (int) ((sin(theta) * d_x_local + cos(theta) * d_y_local) * 1000),
-    //     (int) robot->x,
-    //     (int) (fabs(robot->x - (int)robot->x) * 1000),
-    //     (int) robot->y,
-    //     (int) (fabs(robot->y - (int)robot->y) * 1000),
-    //     (int) robot->theta,
-    //     (int) (fabs(robot->theta - (int)robot->theta) * 1000)
-    // ); 
 }
 
-void Robot_update_odometry_improved(Robot *robot) {
-    //return;
-    float theta = robot->theta;
+void Robot_update_odometry_taylor(Robot *robot) {
+        float theta = robot->theta;
 
     float d_tick_l = robot->motor_left->encoder->pos_diff;
     float d_tick_r = robot->motor_right->encoder->pos_diff;
-
+    
     // CALIBRATION PARAMS
     // these in ideal case are (robot->wheel_circ / TICKS_PER_REV) but could be different so we got to calibrate them
     // [ (robot->wheel_circ / TICKS_PER_REV) è il valore "nominale", poi però va calibrato ]
-    float kl = 0.014792;    // 0.013136;
-    float kr = 0.014792;    // 0.013136;
-    float b = 29.5;         // 28.6;         //33.0;         // 31.304;       // 30.0;
+    float b = robot->b;
+    float kr = robot->kr;
+    float kl = robot->kl;
 
-    // W CALIBRATION
     float d_pl = kl * d_tick_l;
     float d_pr = kr * d_tick_r;
 
-    float d_p = (d_pr + d_pl) / 2.0;
-    // float d_theta = (d_pr - d_pl) / (2.0 * robot->Rw); // computes in radians
+    float d_p = (d_pr + d_pl) / 2.0; // computes in radians
 
-    // W CALIBRATION
     float d_theta = (d_pr - d_pl) / b;
 
     float d_x_local;
