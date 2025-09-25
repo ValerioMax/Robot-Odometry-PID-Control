@@ -46,43 +46,43 @@ int main() {
         Encoder_update_rpm(&encoder1, time_passed_us);
         Encoder_update_rpm(&encoder2, time_passed_us);
 
-        // if (robot.pos_control) {
-        //     Motor_PID_position(&motor1, time_passed_us);
-        //     Motor_PID_position(&motor2, time_passed_us);
-        // }
-        // else if (robot.rpm_control) {
-        //     Motor_PID_speed(&motor1, time_passed_us);
-        //     Motor_PID_speed(&motor2, time_passed_us);
-        // }
+        if (robot.pos_control) {
+            Motor_PID_position(&motor1, time_passed_us);
+            Motor_PID_position(&motor2, time_passed_us);
+        }
+        else if (robot.rpm_control) {
+            Motor_PID_speed(&motor1, time_passed_us);
+            Motor_PID_speed(&motor2, time_passed_us);
+        }
 
         Robot_update_odometry(&robot);
 
         // every DELTA_T_LOG_US data gets logged on UART
-        if (micros() > prev_log_time + DELTA_T_LOG_US + 9000) {
+        if (micros() > prev_log_time + 20000000) { // + DELTA_T_LOG_US
             prev_log_time = micros();
             
-            // printf("%ld %ld, %ld %ld %ld\n", 
-            //     motor1.encoder->pos,
-            //     motor2.encoder->pos,
-            //     (long) (robot.x * 1000),
-            //     (long) (robot.y * 1000),
-            //     (long)(robot.theta*1000)
-            // );
-
-            //motor 1 everything
-            printf("%ld %ld %ld %d %d %d, %u,,, %ld %ld %ld\n", 
+            printf("%ld %ld, %ld %ld %ld\n", 
                 motor1.encoder->pos,
-                motor1.target_pos,
-                motor1.err_pos,
-                motor1.encoder->rpm,
-                motor1.target_rpm,
-                motor1.err_rpm,
-                OCR4A,
-
+                motor2.encoder->pos,
                 (long) (robot.x * 1000),
                 (long) (robot.y * 1000),
-                (long) (robot.theta * 1000)
+                (long)(robot.theta*1000)
             );
+
+            //motor 1 everything
+            // printf("%ld %ld %ld %d %d %d, %u,,, %ld %ld %ld\n", 
+            //     motor1.encoder->pos,
+            //     motor1.target_pos,
+            //     motor1.err_pos,
+            //     motor1.encoder->rpm,
+            //     motor1.target_rpm,
+            //     motor1.err_rpm,
+            //     OCR4A,
+
+            //     (long) (robot.x * 1000),
+            //     (long) (robot.y * 1000),
+            //     (long) (robot.theta * 1000)
+            // );
 
             // printf("%d %d %d\n", 
             //     motor1.encoder->pos,

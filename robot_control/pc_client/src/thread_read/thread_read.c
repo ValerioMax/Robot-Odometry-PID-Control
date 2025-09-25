@@ -77,7 +77,7 @@ int loop_task(taskdata *data) {
         
         set_x_axis_info(data->axis_info, data->cbuf);
 
-        plot_data(data->windata, data->cbuf, data->axis_info, plot_pos, plot_rpm);
+        //plot_data(data->windata, data->cbuf, data->axis_info, plot_pos, plot_rpm);
 
         prev_plot_time_ms = millis();
     }
