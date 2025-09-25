@@ -62,7 +62,7 @@ void set_non_canon_mode(int fd) {
     struct termios tty_curr;
     tcgetattr(fd, &tty_curr);
     tty_curr.c_lflag &= ~ICANON;
-    //tty_curr.c_lflag &= ~ECHO;
+    tty_curr.c_lflag &= ~ECHO;
     tcsetattr(fd, TCSANOW, &tty_curr);
 
     printf("Non Canonical Mode. Press 'q' to quit.\n");
@@ -72,8 +72,8 @@ void set_canon_mode(int fd) {
     // configure stdin to canonical mode
     struct termios tty_curr;
     tcgetattr(fd, &tty_curr);
-    tty_curr.c_lflag &= ICANON;
-    //tty_curr.c_lflag &= ECHO;
+    tty_curr.c_lflag |= ICANON;
+    tty_curr.c_lflag |= ECHO;
     tcsetattr(fd, TCSANOW, &tty_curr);
 
     printf("Returning to Canonical Mode.\n");

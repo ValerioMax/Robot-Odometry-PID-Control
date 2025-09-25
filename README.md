@@ -175,3 +175,11 @@ e penso sia colpa del fatto che a un certo punto l'esp si scollega
 -------------------------------
 
 NOTA: esp e arduino vogliono il common ground, altrimenti non comunicano!!!!!!
+
+-------------------------------
+
+i control my arduino robot in two modes. to exit wasd-mode i type 'q' on the pc client.
+The problem is that sometimes the bytes get lost in the communication resulting in the pc client sending 'q' and thinking arduino exited wasd-mode even if arduino didnt receive it.
+
+Il problema dei byte persi avvieni molto di più con il monitor serial di VSCode rispetto a quello di CuteCom, perché è meno efficiente.
+--> Per risolvere dovrei implementare un sistema di ACKnowledgement per sincronizzare pc client con Arduino
