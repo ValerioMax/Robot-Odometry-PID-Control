@@ -5,8 +5,14 @@
 
 #define MAX_COMMAND_ARGS 6
 
+#define MOTOR_ATTACH_COMMAND "attach"
+#define MOTOR_ATTACH_COMMAND_ARGS 3
+
 #define PWM_COMMAND "pwm"
 #define PWM_COMMAND_ARGS 5
+
+#define GAIN_COMMAND "gain"
+#define GAIN_COMMAND_ARGS 4
 
 #define POS_COMMAND "pos"
 #define POS_COMMAND_ARGS 3
@@ -14,14 +20,8 @@
 #define RPM_COMMAND "rpm"
 #define RPM_COMMAND_ARGS 3
 
-#define SETMOTOR_COMMAND "setmotor"
-#define SETMOTOR_COMMAND_ARGS 3
-
-#define GAIN_COMMAND "gain"
-#define GAIN_COMMAND_ARGS 4
-
-#define SETMANUAL_COMMAND "setmanual"
-#define SETMANUAL_COMMAND_ARGS 2
-
 #define SETWASD_COMMAND "setwasd"
 #define SETWASD_COMMAND_ARGS 2
+
+#define ROBOT_GOTO_COMMAND "goto"
+#define ROBOT_GOTO_COMMAND_ARGS 3

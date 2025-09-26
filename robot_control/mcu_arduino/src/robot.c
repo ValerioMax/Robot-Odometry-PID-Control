@@ -60,56 +60,63 @@ void Robot_get_commands(Robot *robot) {
         return ;
 
     // COMMAND INTERFACE:
-    // [OPEN LOOP]
+
+    /* [MOTOR OPEN LOOP COMMANDS] */ 
+    // attach <motor1> <motor2>
+    if (!strcmp(cmd_args[0], MOTOR_ATTACH_COMMAND) && arg_count == MOTOR_ATTACH_COMMAND_ARGS) {
+        Motor_attach(robot->motor_left, atoi(cmd_args[1]));
+        Motor_attach(robot->motor_right, atoi(cmd_args[2]));
+    }
     // pwm <dir_motor1_left> <duty_cycle%_motor_left> <dir_motor_right> <duty_cycle%_motor_right>
-    if (!strcmp(cmd_args[0], PWM_COMMAND) && arg_count == PWM_COMMAND_ARGS) {
-        //printf("PWM\n");
+    else if (!strcmp(cmd_args[0], PWM_COMMAND) && arg_count == PWM_COMMAND_ARGS) {
+        robot->pos_control = 0;
+        robot->rpm_control = 0;
         robot->motor_left->manual_control = 1;
         robot->motor_right->manual_control = 1;
         Motor_set_pwm(robot->motor_left, atoi(cmd_args[1]), (uint16_t) atoi(cmd_args[2]));
         Motor_set_pwm(robot->motor_right, atoi(cmd_args[3]), (uint16_t) atoi(cmd_args[4]));
     }
-    // [CLOSED LOOP]
-    // pos	<pos_motor_1> <pos_motor_2> 
-    else if (!strcmp(cmd_args[0], POS_COMMAND) && arg_count == POS_COMMAND_ARGS) {
-        //printf("POS\n");
-        robot->pos_control = 1;
-        robot->rpm_control = 0;
 
-        robot->motor_left->manual_control = 0;
-        robot->motor_right->manual_control = 0;
-        robot->motor_left->target_pos = atol(cmd_args[1]);
-        robot->motor_right->target_pos = atol(cmd_args[2]);
-    }
-    // [CLOSED LOOP]
-    // rpm	<rpm_motor_1> <rpm_motor_2> 
-    else if (!strcmp(cmd_args[0], RPM_COMMAND) && arg_count == RPM_COMMAND_ARGS) {
-        robot->pos_control = 0;
-        robot->rpm_control = 1;
-    
-        robot->motor_left->manual_control = 0;
-        robot->motor_right->manual_control = 0;
-        robot->motor_left->target_rpm = atoi(cmd_args[1]);
-        robot->motor_right->target_rpm = atoi(cmd_args[2]);
-    }
-    // setmotor <motor1> <motor2>
-    else if (!strcmp(cmd_args[0], SETMOTOR_COMMAND) && arg_count == SETMOTOR_COMMAND_ARGS) {
-        Motor_attach(robot->motor_left, atoi(cmd_args[1]));
-        Motor_attach(robot->motor_right, atoi(cmd_args[2]));
-    }
+
+    /* [MOTOR CLOSED LOOP COMMANDS] */
     // gain <kp> <ki> <kd>
     else if (!strcmp(cmd_args[0], GAIN_COMMAND) && arg_count == GAIN_COMMAND_ARGS) {
         Motor_PID_params(robot->motor_left, atol(cmd_args[1]), atol(cmd_args[2]), atol(cmd_args[3]));
         Motor_PID_params(robot->motor_right, atol(cmd_args[1]), atol(cmd_args[2]), atol(cmd_args[3]));
     }
-    // setmanual <1/0>
-    else if (!strcmp(cmd_args[0], SETMANUAL_COMMAND) && arg_count == SETMANUAL_COMMAND_ARGS) {
-        robot->motor_left->manual_control = atoi(cmd_args[1]);
-        robot->motor_right->manual_control = atoi(cmd_args[1]);
+    // pos	<pos_motor_1> <pos_motor_2> 
+    else if (!strcmp(cmd_args[0], POS_COMMAND) && arg_count == POS_COMMAND_ARGS) {
+        robot->pos_control = 1;
+        robot->rpm_control = 0;
+        robot->motor_left->manual_control = 0;
+        robot->motor_right->manual_control = 0;
+        robot->motor_left->target_pos = atol(cmd_args[1]);
+        robot->motor_right->target_pos = atol(cmd_args[2]);
     }
+    // rpm	<rpm_motor_1> <rpm_motor_2> 
+    else if (!strcmp(cmd_args[0], RPM_COMMAND) && arg_count == RPM_COMMAND_ARGS) {
+        robot->pos_control = 0;
+        robot->rpm_control = 1;
+        robot->motor_left->manual_control = 0;
+        robot->motor_right->manual_control = 0;
+        robot->motor_left->target_rpm = atoi(cmd_args[1]);
+        robot->motor_right->target_rpm = atoi(cmd_args[2]);
+    }
+
+
+    /* [ROBOT COMMANDS] */
     // setwasd <1/0>
     else if (!strcmp(cmd_args[0], SETWASD_COMMAND) && arg_count == SETWASD_COMMAND_ARGS) {
         robot->wasd_control = atoi(cmd_args[1]);
+    }
+    // goto <x> <y>
+    else if (!strcmp(cmd_args[0], ROBOT_GOTO_COMMAND) && arg_count == ROBOT_GOTO_COMMAND_ARGS) {
+        robot->wasd_control = 0;
+        robot->auto_control = 1;
+        robot->pos_control = 0; // TODO: JUST FOR NOW CAUSE I M USING DIRECT PWM CONTROL
+        robot->rpm_control = 0; // TODO: JUST FOR NOW CAUSE I M USING DIRECT PWM CONTRO
+        robot->target_x = (float) atoi(cmd_args[1]);
+        robot->target_y = (float) atoi(cmd_args[2]);
     }
 }
 
@@ -142,23 +149,6 @@ void Robot_get_wasd(Robot *robot) {
         robot->wasd_control = 0;
     }
 }
-
-// // from encoder readings compute the arc of circumpherence (delta_p) did by the center of the wheels
-// // and the angle (delta_theta) done along the "circonferenza osculatrice" of the arc percurrend in current in last iteration 
-// void Robot_compute_arc_and_theta(Robot *robot) {
-//     float d_pl = (float) Encoder_get_tick_diff(robot->motor_left->encoder);
-//     float d_pr = (float) Encoder_get_tick_diff(robot->motor_right->encoder);
-    
-//     robot->d_p = (d_pr + d_pl) / 2;
-//     robot->d_theta = abs(d_pr - d_pl) / (2 * robot->Rw);
-// }
-
-// // from delta_p and delta_t computes current delta_x, delta_y and sets delta_x, delta_y, delta_theta 
-// void Robot_m2t(Robot *robot) {
-//     // t = [d_x, d_y]'
-//     robot->d_x = robot->d_p * (sin(robot->d_theta) / robot->d_theta);
-//     robot->d_y = robot->d_p * ((1 - cos(robot->d_theta)) / robot->d_theta);
-// }
 
 void Robot_update_odometry(Robot *robot) {
     float theta = robot->theta;
@@ -242,6 +232,9 @@ void Robot_update_odometry_taylor(Robot *robot) {
 }
 
 void Robot_goto_position(Robot *robot) {
+    if (!robot->auto_control)
+        return ;
+
     float x = robot->x;
     float y = robot->y;
     float theta = robot->theta;
@@ -269,23 +262,23 @@ void Robot_goto_position(Robot *robot) {
 
     
 
-    if (dl <= Rw + 2) // più un intorno di 2cm per approssimare
+    if (dl <= Rw + 1) // più un intorno di 2cm per approssimare
         ul = 0;
-    if (dr <= Rw + 2) // più un intorno di 2cm per approssimare
+    if (dr <= Rw + 1) // più un intorno di 2cm per approssimare
         ur = 0;
 
-    printf("%d %d (%d %d, %d %d) %d %d, %ld %ld\n",
-            (int)robot->target_x,
-            (int)robot->target_y,
-            (int)wl_x,
-            (int)wl_y,
-            (int)wr_x,
-            (int)wr_y,
-            (int)dl,
-            (int)dr,
-            (long)ul,
-            (long)ur
-        );
+    // printf("%d %d (%d %d, %d %d) %d %d, %ld %ld\n",
+    //         (int)robot->target_x,
+    //         (int)robot->target_y,
+    //         (int)wl_x,
+    //         (int)wl_y,
+    //         (int)wr_x,
+    //         (int)wr_y,
+    //         (int)dl,
+    //         (int)dr,
+    //         (long)ul,
+    //         (long)ur
+    //     );
 
 
 

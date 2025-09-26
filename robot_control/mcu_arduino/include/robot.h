@@ -20,7 +20,7 @@ typedef struct {
     float kr;
     float kl;
     
-    int wasd_control;       // manual WASD control of robot itself
+    int wasd_control; // manual WASD control of robot itself
     int auto_control; // autonomous control of robot itself
 
     // type of control action on the motors
