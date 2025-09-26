@@ -10,13 +10,20 @@ typedef struct {
     float vx;
     float vy;
 
+    // posizione e orientamento desiderati
+    float target_x;
+    float target_y;
+    float target_theta;
+
     // odometry params
     float b;
     float kr;
     float kl;
     
-    // for manual control of robot itself
-    int wasd_control;
+    int wasd_control;       // manual WASD control of robot itself
+    int auto_control; // autonomous control of robot itself
+
+    // type of control action on the motors
     int pos_control;
     int rpm_control;
 
@@ -29,3 +36,5 @@ void Robot_get_commands(Robot *robot);
 void Robot_get_wasd(Robot *robot);
 void Robot_update_odometry(Robot *robot);
 void Robot_update_odometry_taylor(Robot *robot);
+
+void Robot_goto_position(Robot *robot);

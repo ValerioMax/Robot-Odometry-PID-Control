@@ -11,7 +11,13 @@ void Robot_init(Robot *robot, Motor *motor_left, Motor *motor_right, float b, fl
     robot->vx = 0;
     robot->vy = 0;
 
+    robot->target_x = 0;
+    robot->target_y = 0;
+    robot->target_theta = 0;
+
     robot->wasd_control = 0;
+    robot->auto_control = 0;
+
     robot->pos_control = 1;
     robot->rpm_control = 0;
 
@@ -177,15 +183,18 @@ void Robot_update_odometry(Robot *robot) {
     float d_x_local;
     float d_y_local;
 
+
+    // NOTA: delta_x e delta_y sono invertiti rispetto a come l'ho disegnato negli appunti, ma così è coerente con la matrice di rotazione
+
     // Handle della divisione per 0 (ESSENZIALE se no succede un casino)
     // TODO: POI MAGARI USA LO SVILUPPO DI TAYLOR che non ha denominatori
     if (fabs(d_theta) < 0.000001) {
-        d_x_local = d_p;
-        d_y_local = 0;
+        d_y_local = d_p;
+        d_x_local = 0;
     }
     else {
-        d_x_local = d_p * (sin(d_theta) / d_theta);
-        d_y_local = d_p * ((1 - cos(d_theta)) / d_theta);
+        d_y_local = d_p * (sin(d_theta) / d_theta);
+        d_x_local = d_p * ((1 - cos(d_theta)) / d_theta);
     }
 
     // Xnew = Xold + R(theta_ass) * t
@@ -196,7 +205,7 @@ void Robot_update_odometry(Robot *robot) {
 }
 
 void Robot_update_odometry_taylor(Robot *robot) {
-        float theta = robot->theta;
+    float theta = robot->theta;
 
     float d_tick_l = robot->motor_left->encoder->pos_diff;
     float d_tick_r = robot->motor_right->encoder->pos_diff;
@@ -218,8 +227,9 @@ void Robot_update_odometry_taylor(Robot *robot) {
     float d_x_local;
     float d_y_local;
 
-    d_x_local = d_p * (1 - (d_theta*d_theta)/6 + (d_theta*d_theta*d_theta*d_theta)/120);
-    d_y_local = d_p * (d_theta/2 - (d_theta*d_theta*d_theta)/24);
+    // NOTA: delta_x e delta_y sono invertiti rispetto a come l'ho disegnato negli appunti, ma così è coerente con la matrice di rotazione
+    d_x_local = d_p * (d_theta/2 - (d_theta*d_theta*d_theta)/24);
+    d_y_local = d_p * (1 - (d_theta*d_theta)/6 + (d_theta*d_theta*d_theta*d_theta)/120);
 
     // Xnew = Xold + R(theta_ass) * t
     float sin_theta = theta - (theta*theta*theta)/6;
@@ -229,4 +239,66 @@ void Robot_update_odometry_taylor(Robot *robot) {
     robot->y = robot->y + (sin_theta * d_x_local + cos_theta * d_y_local);
 
     robot->theta += d_theta;
+}
+
+void Robot_goto_position(Robot *robot) {
+    float x = robot->x;
+    float y = robot->y;
+    float theta = robot->theta;
+
+    float Rw = robot->b / 2.0;
+
+    float target_x = robot->target_x;
+    float target_y = robot->target_y;
+    //int target_theta = (int) robot->target_theta; // for now i do only position control
+
+    float k = 500.0;
+
+    // PORTA CON MATRICE DI ROTAZIONE NEL SISTEMA DELLA TRAIETTORIA (con asse y la il segmento fra A e B)
+    float wl_x = x + cos(theta) * (-Rw) - sin(theta) * 0;
+    float wl_y = y + sin(theta) * (-Rw) + cos(theta) * 0;
+    float wr_x = x + cos(theta) * Rw - sin(theta) * 0;
+    float wr_y = y + sin(theta) * Rw + cos(theta) * 0;
+
+    // CALCOLA d(WL, B) d(WR, B)
+    float dl = sqrt((wl_x - target_x)*(wl_x - target_x) + (wl_y - target_y)*(wl_y - target_y));
+    float dr = sqrt((wr_x - target_x)*(wr_x - target_x) + (wr_y - target_y)*(wr_y - target_y));
+ 
+    float ul = k * dl;
+    float ur = k * dr;
+
+    
+
+    if (dl <= Rw + 2) // più un intorno di 2cm per approssimare
+        ul = 0;
+    if (dr <= Rw + 2) // più un intorno di 2cm per approssimare
+        ur = 0;
+
+    printf("%d %d (%d %d, %d %d) %d %d, %ld %ld\n",
+            (int)robot->target_x,
+            (int)robot->target_y,
+            (int)wl_x,
+            (int)wl_y,
+            (int)wr_x,
+            (int)wr_y,
+            (int)dl,
+            (int)dr,
+            (long)ul,
+            (long)ur
+        );
+
+
+
+
+    // AL MOMENTO STO FACENDO UN CONTROLLO DIRETTO SULLA PWM, POI DOVRò USARE PID_RPM COME AZIONE
+    float ul_pwm = fabs(ul);
+    float ur_pwm = fabs(ur);
+
+    if(ul_pwm > MAX_PWM_TICKS)
+        ul_pwm = MAX_PWM_TICKS;
+    if(ur_pwm > MAX_PWM_TICKS)
+        ur_pwm = MAX_PWM_TICKS;
+
+    Motor_set_pwm(robot->motor_left, 1, (uint16_t) ul_pwm);
+    Motor_set_pwm(robot->motor_right, 1, (uint16_t) ur_pwm);
 }

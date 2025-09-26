@@ -34,6 +34,10 @@ int main() {
     uint64_t prev_log_time = 0;
     uint64_t prev_loop_time = 0;
 
+    // WORK IN PROGRESS
+    robot.target_x = 50.0;
+    robot.target_y = 100.0;
+
     while (1) {
         uint64_t time_passed_us = micros() - prev_loop_time;
         prev_loop_time = micros();
@@ -46,16 +50,18 @@ int main() {
         Encoder_update_rpm(&encoder1, time_passed_us);
         Encoder_update_rpm(&encoder2, time_passed_us);
 
-        if (robot.pos_control) {
-            Motor_PID_position(&motor1, time_passed_us);
-            Motor_PID_position(&motor2, time_passed_us);
-        }
-        else if (robot.rpm_control) {
-            Motor_PID_speed(&motor1, time_passed_us);
-            Motor_PID_speed(&motor2, time_passed_us);
-        }
+        // if (robot.pos_control) {
+        //     Motor_PID_position(&motor1, time_passed_us);
+        //     Motor_PID_position(&motor2, time_passed_us);
+        // }
+        // else if (robot.rpm_control) {
+        //     Motor_PID_speed(&motor1, time_passed_us);
+        //     Motor_PID_speed(&motor2, time_passed_us);
+        // }
 
-        Robot_update_odometry_taylor(&robot);
+        Robot_update_odometry(&robot);
+
+        Robot_goto_position(&robot); // WORK IN PROGRESS
 
         // every DELTA_T_LOG_US data gets logged on UART
         if (micros() > prev_log_time + 1000000) { // DELTA_T_LOG_US
