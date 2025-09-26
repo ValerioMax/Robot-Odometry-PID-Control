@@ -35,7 +35,7 @@
 
 // tempo di "campionamento" del log on UART
 //#define DELTA_T_FILL_BUF_US 2000000
-#define DELTA_T_LOG_US 10000000 // TODO: TO CHANGE
+#define DELTA_T_LOG_US 1000000 // TODO: TO CHANGE
 
 // tempo di campionamento 5ms per avere freq campionamento 50Hz
 #define DELTA_T_US 5000

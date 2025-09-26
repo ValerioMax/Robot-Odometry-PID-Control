@@ -50,7 +50,7 @@ int main() {
 
         // robot autonomous position control task
         if (robot.auto_control) {
-            Robot_goto_position(&robot); // WORK IN PROGRESS
+            Robot_goto_position(&robot);
         }
 
         // Robot_goto_position() task use one of these two tasks for actuation 
@@ -64,7 +64,7 @@ int main() {
         }
 
         // every DELTA_T_LOG_US data gets logged on UART
-        if (micros() > prev_log_time + 1000000) { // DELTA_T_LOG_US
+        if (micros() > prev_log_time + DELTA_T_LOG_US) {
             prev_log_time = micros();
             
             // robot odometry logging

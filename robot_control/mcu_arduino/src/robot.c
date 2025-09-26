@@ -1,5 +1,10 @@
 #include "robot.h"
 
+// TODO: mettili come attributi della classe Robot
+// per il controllo di posizione del robot
+float x_prev = 0;
+float y_prev = 0;
+
 void Robot_init(Robot *robot, Motor *motor_left, Motor *motor_right, float b, float kr, float kl) {
     robot->b = b;
     robot->kr = kr;
@@ -113,8 +118,10 @@ void Robot_get_commands(Robot *robot) {
     else if (!strcmp(cmd_args[0], ROBOT_GOTO_COMMAND) && arg_count == ROBOT_GOTO_COMMAND_ARGS) {
         robot->wasd_control = 0;
         robot->auto_control = 1;
-        robot->pos_control = 0; // TODO: JUST FOR NOW CAUSE I M USING DIRECT PWM CONTROL
-        robot->rpm_control = 0; // TODO: JUST FOR NOW CAUSE I M USING DIRECT PWM CONTRO
+        robot->pos_control = 0;
+        robot->rpm_control = 1;
+        //robot->pos_control = 0; // TODO: JUST FOR NOW CAUSE I M USING DIRECT PWM CONTROL
+        //robot->rpm_control = 0; // TODO: JUST FOR NOW CAUSE I M USING DIRECT PWM CONTROL
         robot->target_x = (float) atoi(cmd_args[1]);
         robot->target_y = (float) atoi(cmd_args[2]);
     }
@@ -245,26 +252,47 @@ void Robot_goto_position(Robot *robot) {
     float target_y = robot->target_y;
     //int target_theta = (int) robot->target_theta; // for now i do only position control
 
-    float k = 500.0;
+    //float k = 500.0;
+    float k = 0.7;
 
-    // PORTA CON MATRICE DI ROTAZIONE NEL SISTEMA DELLA TRAIETTORIA (con asse y la il segmento fra A e B)
+    // Put in fixed coord the ledt and right wheel coordinates
     float wl_x = x + cos(theta) * (-Rw) - sin(theta) * 0;
     float wl_y = y + sin(theta) * (-Rw) + cos(theta) * 0;
     float wr_x = x + cos(theta) * Rw - sin(theta) * 0;
     float wr_y = y + sin(theta) * Rw + cos(theta) * 0;
 
-    // CALCOLA d(WL, B) d(WR, B)
+    // distance between wheels and target point
     float dl = sqrt((wl_x - target_x)*(wl_x - target_x) + (wl_y - target_y)*(wl_y - target_y));
     float dr = sqrt((wr_x - target_x)*(wr_x - target_x) + (wr_y - target_y)*(wr_y - target_y));
  
     float ul = k * dl;
     float ur = k * dr;
 
-    
+    // if you are not alligned with the target circumpherence robot has to rotate
+    if (fabs(dr - dl) > 1.0) {
+        if (dr > dl)
+            ul = 0;
+        else
+            ur = 0;
+    }
 
-    if (dl <= Rw + 1) // più un intorno di 2cm per approssimare
+    // "singolarità": sei allineato ma la circonferenza è dietro di te e comando u diverge
+    // --> ruota un pò fino a uscire dalla singolarità
+    // ( in realtà ruoto un pò di più: fino a che d_prev > d, perché mettere (x >= target_x || y >= target_y) causa overshoot )
+    
+    // command divergence is caused by target being straightly behind robot, so robot has to rotate a little to exit this condition 
+    float d      = sqrt((x - target_x)*(x - target_x) + (y - target_y)*(y - target_y));
+    float d_prev = sqrt((x_prev - target_x)*(x_prev - target_x) + (y_prev - target_y)*(y_prev - target_y));
+    x_prev = x;
+    y_prev = y;
+
+    if (fabs(dr - dl) <= 1.0 && d > d_prev)
         ul = 0;
-    if (dr <= Rw + 1) // più un intorno di 2cm per approssimare
+
+    // if wheel touch target circumpherence (plus 1cm for approximation) stop moving
+    if (dl <= Rw + 1.0)
+        ul = 0;
+    if (dr <= Rw + 1.0)
         ur = 0;
 
     // printf("%d %d (%d %d, %d %d) %d %d, %ld %ld\n",
@@ -280,18 +308,18 @@ void Robot_goto_position(Robot *robot) {
     //         (long)ur
     //     );
 
+    // CONTROLLO DIRETTO SULLA PWM [ Se si usa questo SETTARE A ZERO IL CONTROLLO DI RPM E POS nell'else if della command interface! ]
+    // float ul_pwm = fabs(ul);
+    // float ur_pwm = fabs(ur);
 
+    // if(ul_pwm > MAX_PWM_TICKS)
+    //     ul_pwm = MAX_PWM_TICKS;
+    // if(ur_pwm > MAX_PWM_TICKS)
+    //     ur_pwm = MAX_PWM_TICKS;
 
+    // Motor_set_pwm(robot->motor_left, 1, (uint16_t) ul_pwm);
+    // Motor_set_pwm(robot->motor_right, 1, (uint16_t) ur_pwm);
 
-    // AL MOMENTO STO FACENDO UN CONTROLLO DIRETTO SULLA PWM, POI DOVRò USARE PID_RPM COME AZIONE
-    float ul_pwm = fabs(ul);
-    float ur_pwm = fabs(ur);
-
-    if(ul_pwm > MAX_PWM_TICKS)
-        ul_pwm = MAX_PWM_TICKS;
-    if(ur_pwm > MAX_PWM_TICKS)
-        ur_pwm = MAX_PWM_TICKS;
-
-    Motor_set_pwm(robot->motor_left, 1, (uint16_t) ul_pwm);
-    Motor_set_pwm(robot->motor_right, 1, (uint16_t) ur_pwm);
+    robot->motor_left->target_rpm = (int) ul;
+    robot->motor_right->target_rpm = (int) ur;
 }

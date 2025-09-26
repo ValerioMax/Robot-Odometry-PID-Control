@@ -36,5 +36,4 @@ void Robot_get_commands(Robot *robot);
 void Robot_get_wasd(Robot *robot);
 void Robot_update_odometry(Robot *robot);
 void Robot_update_odometry_taylor(Robot *robot);
-
 void Robot_goto_position(Robot *robot);
