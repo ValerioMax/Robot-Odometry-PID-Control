@@ -1,5 +1,5 @@
-//#ifndef MOTOR_H
-//#define MOTOR_H
+#ifndef MOTOR_H
+#define MOTOR_H
 
 #include "shared_types.h"
 #include "peripherals_utils.h"
@@ -13,7 +13,7 @@
 // top value for N tick resolution
 #define MAX_PWM_TICKS 65535 // 8bit: 255, 9bit: 511, 10bit: 1023, 16bit: 65535
 
-// e_integral clamping values to prevent enourmous error accumulation
+// e_integral clamping values to prevent enourmous error accumulation (a good val can be 0.25*MAX_PWM_TICKS)
 #define E_INTEGRAL_MAX 16000.0
 #define E_INTEGRAL_MIN -16000.0
 
@@ -56,4 +56,4 @@ void Motor_PID_params(Motor *motor, int32_t kp, int32_t ki, int32_t kd);
 void Motor_PID_position(Motor *motor, uint64_t time_passed_us);
 void Motor_PID_speed(Motor *motor, uint64_t time_passed_us);
 
-//#endif
+#endif

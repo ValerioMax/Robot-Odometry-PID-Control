@@ -16,16 +16,9 @@ void *thread_write(void *args) {
     size_t len;
     long long last_time = 0;
 
-    sleep(1);   // FONDAMENTALE PER LA SINCRONIZZAZIONE MORTACCI SUA
-                // SE NON LA METTO E SE DA QUI SCRIVO A FREQ ALTA ARDUINO NON RICEVE PIU
-                // APPENA APRO LA SERIALE QUESTO THREAD INIZIA A ESEGUIRE
-                // ARDUINO APPENA RICEVE UN TENTATIVO DI CONNESSIONE SERIALE SI RESETTA E CI METTE UNA FRAZIONE DI TEMPO
-                // QUESTO SLEEP SERVE PER FAR ASPETTARE CHE ARDUINO COMPLETI QUESTO PROCESSO DEL TUTTO SENNO SI SFANCULA TUTTO A QUANTO PARE
+    sleep(1); // wait for arduino to setup
 
     while (1) {
-        //printf("AAA\n");
-        //fflush(stdout);
-
         printf("Enter command: \n");
 
         ssize_t command = getline(&line, &len, stdin);
@@ -43,7 +36,7 @@ void *thread_write(void *args) {
             plot_rpm = 1;
         }
         else if (!strncmp(line, "setwasd 1", 9))
-            start_wasd_interface(serial_port); // TODO: MAYBE UNCOMMENT the ECHO and also use printf("%c\n") so chars are printed sempre a capo
+            start_wasd_interface(serial_port);
             
         free(line);
         line = NULL;

@@ -70,8 +70,6 @@ uint8_t UART_getstring_blocking(uint8_t *buf) {
     }
 }
 
-// per flavour faccio tutto nella ISR. Per efficienza massima (ISR più corta) sarebbe meglio solo attivare una flag
-// e aggioranre rx_buffer nel main (come con gli altri interrupt che ho settato)
 volatile char recv_byte;
 volatile uint8_t rx_buffer[MAX_BUF_SIZE];
 volatile int rx_byte_ready = 0;

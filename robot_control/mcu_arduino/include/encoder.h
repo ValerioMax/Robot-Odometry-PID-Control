@@ -1,10 +1,10 @@
-//#ifndef ENCODER_H
-//#define ENCODER_H
+#ifndef ENCODER_H
+#define ENCODER_H
 
 #include "shared_types.h"
 #include "peripherals_utils.h"
 
-#define TICKS_PER_REV 2200 //1650 //1875 // measured empirically
+#define TICKS_PER_REV 2200 // measured empirically
 
 typedef struct {
     int pin_a;
@@ -22,4 +22,4 @@ void    Encoder_init(Encoder *encoder, int pin_a, int pin_b, int port);
 void    Encoder_read(Encoder *encoder);
 void    Encoder_update_rpm(Encoder *encoder, uint64_t time_passed_us);
 
-//#endif
+#endif

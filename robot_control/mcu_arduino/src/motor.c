@@ -35,7 +35,6 @@ void Motor_init(Motor *motor, int in1_pin, int in2_pin, int pwm_pin, Encoder *en
     motor->manual_control = 0;
 }
 
-// state 1 attach motor, state 2 detach motor
 void Motor_attach(Motor *motor, int state) {
     motor->attached = state;
 }
@@ -62,12 +61,12 @@ void Motor_set_pwm(Motor *motor, int dir, uint16_t duty_cycle) {
 
     // setting direction
     if (dir == 1) {
-        PORTA |= in1_pin_mask; // in1 HIGH
+        PORTA |= in1_pin_mask;  // in1 HIGH
         PORTA &= ~in2_pin_mask; // in2 LOW
     }
     else if (dir == -1) {
         PORTA &= ~in1_pin_mask; // in1 LOW
-        PORTA |= in2_pin_mask; // in2 HIGH
+        PORTA |= in2_pin_mask;  // in2 HIGH
     }
     else {
         PORTA &= ~in1_pin_mask; // in1 LOW
@@ -120,7 +119,7 @@ void Motor_PID_position(Motor *motor, uint64_t time_passed_us) {
         u_pwm = MAX_PWM_TICKS;
 
     // motor direction
-    int dir = 1; // motor direction 1: CW, -1: CCW, 0: still
+    int dir = 1;
     if (u < 0)
         dir = -1;
 
@@ -144,8 +143,6 @@ void Motor_PID_speed(Motor *motor, uint64_t time_passed_us) {
     int rpm_filt = motor->rpm_filt;
     int rpm_prev = motor->rpm_prev;
 
-    // TODO: TOGLILE COME VARIABILI GLOBALI E METTILE COME ATTRIBUTO DELLA CLASSE ENCODER O MOTOR !!!!
-    //       SENNO ROMPE TUTTO CON DUE MOTORI!!!!!!!!!!!
     // low-pass filter (25 Hz cutoff frequency (w0))
     rpm_filt = (0.854 * rpm_filt) + (0.0728 * rpm) + (0.0728 * rpm_prev);
     rpm_prev = rpm;
@@ -180,11 +177,9 @@ void Motor_PID_speed(Motor *motor, uint64_t time_passed_us) {
         u_pwm = MAX_PWM_TICKS;
 
     // motor direction
-    int dir = 1; // motor direction 1: CW, -1: CCW, 0: still
+    int dir = 1;
     if (u < 0)
         dir = -1;
-
-    //printf("kp %ld, e %d, u %ld\n", kp, e, (long) u);
 
     // actuate command
     Motor_set_pwm(motor, dir, (uint16_t) u_pwm);

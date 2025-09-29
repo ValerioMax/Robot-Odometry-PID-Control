@@ -8,7 +8,7 @@
 
 #define PIN_MASK 0x0F // last four bit of PORT B (50-53)
 
-// DA VEDERE (vedi anche /testing/test_encoder.c per i PinChangeINT)
+// NON HO ANCORA TESTATO QUESTO CODICE !!! (vedi anche /testing/test_encoder.c per i PinChangeINT)
 
 volatile uint8_t previous_pins;
 volatile uint8_t current_pins;

@@ -25,9 +25,6 @@ void set_x_axis_info(t_info *axis_info, CircularBuffer *cbuf) {
 	axis_info->time_min = (long long) (cbuf->samples[cbuf->head]).timestamp;
 	axis_info->time_max = (long long) (cbuf->samples[cb_get_idx_last_elem(cbuf)]).timestamp;
     axis_info->time_range = abs(axis_info->time_max - axis_info->time_min);
-
-    //axis_info->value_max = y_max; // TODO change this value
-    //printf("%lf %lf %lf\n", axis_info->time_min, axis_info->time_max, axis_info->time_range);
 }
 
 void set_y_axis_info(t_info *axis_info, int y_max) {
@@ -37,8 +34,6 @@ void set_y_axis_info(t_info *axis_info, int y_max) {
 void fill_one_sample(CircularBuffer *cbuf, char *line) {
     if (!line)
         return ;
-    //printf("%lld\n", millis());
-    //printf("%s\n", line);
 
     t_sample sample = {0};
 
@@ -97,22 +92,22 @@ void fill_one_sample(CircularBuffer *cbuf, char *line) {
     cb_enqueue(cbuf, sample);
 }
 
-void log_data_to_tsv(int fd, CircularBuffer *cbuf) {
-    int cbuf_len = cb_get_num_elements(cbuf);
+// void log_data_to_tsv(int fd, CircularBuffer *cbuf) {
+//     int cbuf_len = cb_get_num_elements(cbuf);
 
-    for (int i = 0; i < cbuf_len; i++) {
-        char write_buf[MAX_BUFFER_SIZE];
+//     for (int i = 0; i < cbuf_len; i++) {
+//         char write_buf[MAX_BUFFER_SIZE];
 
-        int idx = cb_get_idx(cbuf, i);
+//         int idx = cb_get_idx(cbuf, i);
 
-        t_sample sample = cbuf->samples[idx];
+//         t_sample sample = cbuf->samples[idx];
 
-        dprintf(fd, "%lld\t%d\t%d\t%d\t%d\t%d\t%d\n", sample.timestamp,
-                                                        sample.pos,
-                                                        sample.pos_target,
-                                                        sample.pos_error,
-                                                        sample.rpm,
-                                                        sample.rpm_target,
-                                                        sample.rpm_error);
-    }
-}
+//         dprintf(fd, "%lld\t%d\t%d\t%d\t%d\t%d\t%d\n", sample.timestamp,
+//                                                         sample.pos,
+//                                                         sample.pos_target,
+//                                                         sample.pos_error,
+//                                                         sample.rpm,
+//                                                         sample.rpm_target,
+//                                                         sample.rpm_error);
+//     }
+// }

@@ -7,9 +7,7 @@
 # include "circular_buffer.h"
 # include "serial.h"
 
-//# define DATA_FILE_NAME "tsv/data_linear.tsv"
-# define DATA_FILE_NAME "tsv/data_sine.tsv"
-//# define DATA_FILE_NAME "tsv/data_sine_floats.tsv"
+//# define DATA_FILE_NAME "tsv/data_sine.tsv"
 
 # define DELTA_T_PLOT_MS 1
 # define DELTA_T_LOG_MS 3000
@@ -22,7 +20,6 @@ typedef struct {
     t_info *axis_info;
     int serial_port;
     int fd;
-
 } taskdata;
 
 void    *thread_read(void *args);

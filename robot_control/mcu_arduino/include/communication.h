@@ -1,3 +1,6 @@
+#ifndef COMMUNICATION_H
+#define COMMUNICATION_H
+
 #include "shared_types.h"
 #include "uart_utils.h"
 
@@ -25,3 +28,5 @@
 
 #define ROBOT_GOTO_COMMAND "goto"
 #define ROBOT_GOTO_COMMAND_ARGS 3
+
+#endif

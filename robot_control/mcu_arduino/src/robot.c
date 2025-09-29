@@ -1,10 +1,5 @@
 #include "robot.h"
 
-// TODO: mettili come attributi della classe Robot
-// per il controllo di posizione del robot
-float x_prev = 0;
-float y_prev = 0;
-
 void Robot_init(Robot *robot, Motor *motor_left, Motor *motor_right, float b, float kr, float kl) {
     robot->b = b;
     robot->kr = kr;
@@ -13,6 +8,8 @@ void Robot_init(Robot *robot, Motor *motor_left, Motor *motor_right, float b, fl
     robot->theta = 0;
     robot->x = 0;
     robot->y = 0;
+    robot->x_prev = 0;
+    robot->y_prev = 0;
     robot->vx = 0;
     robot->vy = 0;
 
@@ -31,8 +28,6 @@ void Robot_init(Robot *robot, Motor *motor_left, Motor *motor_right, float b, fl
 }
 
 void Robot_get_commands(Robot *robot) {
-    // non blocking read: returns arrived string, if string didnt arrive or didnt arrive entirely returns NULL immediately
-    
     char *command_pt = (char*) UART_getstring_non_blocking();
 
     if (!command_pt)
@@ -56,7 +51,6 @@ void Robot_get_commands(Robot *robot) {
     char *token = strtok(command, " ");
 
     while (token && arg_count < MAX_COMMAND_ARGS) {
-        //printf("%s\n", token);
         cmd_args[arg_count++] = token;
         token = strtok(NULL, " ");
     }
@@ -120,14 +114,14 @@ void Robot_get_commands(Robot *robot) {
         robot->auto_control = 1;
         robot->pos_control = 0;
         robot->rpm_control = 1;
-        //robot->pos_control = 0; // TODO: JUST FOR NOW CAUSE I M USING DIRECT PWM CONTROL
-        //robot->rpm_control = 0; // TODO: JUST FOR NOW CAUSE I M USING DIRECT PWM CONTROL
+        //robot->pos_control = 0; // UNCOMMENT IF USING DIRECT PWM CONTROL
+        //robot->rpm_control = 0; // UNCOMMENT IF USING DIRECT PWM CONTROL
         robot->target_x = (float) atoi(cmd_args[1]);
         robot->target_y = (float) atoi(cmd_args[2]);
     }
 }
 
-// direct WASD control in case manual control is active
+// direct WASD control in case WASD control is active
 void Robot_get_wasd(Robot *robot) {
     char c = UART_getchar_non_blocking();
 
@@ -164,8 +158,9 @@ void Robot_update_odometry(Robot *robot) {
     float d_tick_r = robot->motor_right->encoder->pos_diff;
     
     // CALIBRATION PARAMS
-    // these in ideal case are (robot->wheel_circ / TICKS_PER_REV) but could be different so we got to calibrate them
-    // [ (robot->wheel_circ / TICKS_PER_REV) è il valore "nominale", poi però va calibrato ]
+    // nominally    kr = kl = (robot->wheel_circ / TICKS_PER_REV) 
+    //              b = distance between wheels
+    // but to achieve precision we calibrate these values
     float b = robot->b;
     float kr = robot->kr;
     float kl = robot->kl;
@@ -173,18 +168,16 @@ void Robot_update_odometry(Robot *robot) {
     float d_pl = kl * d_tick_l;
     float d_pr = kr * d_tick_r;
 
-    float d_p = (d_pr + d_pl) / 2.0; // computes in radians
+    float d_p = (d_pr + d_pl) / 2.0;
 
-    float d_theta = (d_pr - d_pl) / b;
+    float d_theta = (d_pr - d_pl) / b; // in radians
 
     float d_x_local;
     float d_y_local;
 
-
     // NOTA: delta_x e delta_y sono invertiti rispetto a come l'ho disegnato negli appunti, ma così è coerente con la matrice di rotazione
 
     // Handle della divisione per 0 (ESSENZIALE se no succede un casino)
-    // TODO: POI MAGARI USA LO SVILUPPO DI TAYLOR che non ha denominatori
     if (fabs(d_theta) < 0.000001) {
         d_y_local = d_p;
         d_x_local = 0;
@@ -208,8 +201,6 @@ void Robot_update_odometry_taylor(Robot *robot) {
     float d_tick_r = robot->motor_right->encoder->pos_diff;
     
     // CALIBRATION PARAMS
-    // these in ideal case are (robot->wheel_circ / TICKS_PER_REV) but could be different so we got to calibrate them
-    // [ (robot->wheel_circ / TICKS_PER_REV) è il valore "nominale", poi però va calibrato ]
     float b = robot->b;
     float kr = robot->kr;
     float kl = robot->kl;
@@ -217,9 +208,9 @@ void Robot_update_odometry_taylor(Robot *robot) {
     float d_pl = kl * d_tick_l;
     float d_pr = kr * d_tick_r;
 
-    float d_p = (d_pr + d_pl) / 2.0; // computes in radians
+    float d_p = (d_pr + d_pl) / 2.0;
 
-    float d_theta = (d_pr - d_pl) / b;
+    float d_theta = (d_pr - d_pl) / b; // in radians
 
     float d_x_local;
     float d_y_local;
@@ -228,10 +219,10 @@ void Robot_update_odometry_taylor(Robot *robot) {
     d_x_local = d_p * (d_theta/2 - (d_theta*d_theta*d_theta)/24);
     d_y_local = d_p * (1 - (d_theta*d_theta)/6 + (d_theta*d_theta*d_theta*d_theta)/120);
 
-    // Xnew = Xold + R(theta_ass) * t
     float sin_theta = theta - (theta*theta*theta)/6;
     float cos_theta = (1 - (theta*theta)/2 + (theta*theta*theta*theta)/24);
 
+    // Xnew = Xold + R(theta_ass) * t
     robot->x = robot->x + (cos_theta * d_x_local - sin_theta * d_y_local);
     robot->y = robot->y + (sin_theta * d_x_local + cos_theta * d_y_local);
 
@@ -255,7 +246,7 @@ void Robot_goto_position(Robot *robot) {
     //float k = 500.0;
     float k = 0.7;
 
-    // Put in fixed coord the ledt and right wheel coordinates
+    // Put in fixed coord the left and right wheel coordinates
     float wl_x = x + cos(theta) * (-Rw) - sin(theta) * 0;
     float wl_y = y + sin(theta) * (-Rw) + cos(theta) * 0;
     float wr_x = x + cos(theta) * Rw - sin(theta) * 0;
@@ -282,9 +273,9 @@ void Robot_goto_position(Robot *robot) {
     
     // command divergence is caused by target being straightly behind robot, so robot has to rotate a little to exit this condition 
     float d      = sqrt((x - target_x)*(x - target_x) + (y - target_y)*(y - target_y));
-    float d_prev = sqrt((x_prev - target_x)*(x_prev - target_x) + (y_prev - target_y)*(y_prev - target_y));
-    x_prev = x;
-    y_prev = y;
+    float d_prev = sqrt((robot->x_prev - target_x)*(robot->x_prev - target_x) + (robot->y_prev - target_y)*(robot->y_prev - target_y));
+    robot->x_prev = x;
+    robot->y_prev = y;
 
     if (fabs(dr - dl) <= 1.0 && d > d_prev)
         ul = 0;
@@ -295,20 +286,10 @@ void Robot_goto_position(Robot *robot) {
     if (dr <= Rw + 1.0)
         ur = 0;
 
-    // printf("%d %d (%d %d, %d %d) %d %d, %ld %ld\n",
-    //         (int)robot->target_x,
-    //         (int)robot->target_y,
-    //         (int)wl_x,
-    //         (int)wl_y,
-    //         (int)wr_x,
-    //         (int)wr_y,
-    //         (int)dl,
-    //         (int)dr,
-    //         (long)ul,
-    //         (long)ur
-    //     );
+    robot->motor_left->target_rpm = (int) ul;
+    robot->motor_right->target_rpm = (int) ur;
 
-    // CONTROLLO DIRETTO SULLA PWM [ Se si usa questo SETTARE A ZERO IL CONTROLLO DI RPM E POS nell'else if della command interface! ]
+    // CONTROLLO DIRETTO SULLA PWM
     // float ul_pwm = fabs(ul);
     // float ur_pwm = fabs(ur);
 
@@ -319,7 +300,4 @@ void Robot_goto_position(Robot *robot) {
 
     // Motor_set_pwm(robot->motor_left, 1, (uint16_t) ul_pwm);
     // Motor_set_pwm(robot->motor_right, 1, (uint16_t) ur_pwm);
-
-    robot->motor_left->target_rpm = (int) ul;
-    robot->motor_right->target_rpm = (int) ur;
 }

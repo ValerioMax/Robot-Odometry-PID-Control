@@ -7,9 +7,6 @@
 extern Encoder encoder1;
 extern Encoder encoder2;
 
-extern volatile uint8_t external_int_enc1_occurred;
-extern volatile uint8_t external_int_enc2_occurred;
-
 // from motor.c
 extern Motor motor1;
 extern Motor motor2;
@@ -29,7 +26,8 @@ int main() {
     Motor_init(&motor1, PA1, PA3, PH3, &encoder1);
     Motor_init(&motor2, PA0, PA2, PH4, &encoder2);
 
-    Robot_init(&robot, &motor1, &motor2, 31.87, 0.014792, 0.014792); // nominal (measured empirically): b = 30.0cm, kr = kl = 0.013136 [ d_pl = (d_tick_l * robot->wheel_circ) / TICKS_PER_REV; ]
+    // nominal (measured empirically): b = 30.0cm, kr = kl = 0.013136 [ d_pl = (d_tick_l * robot->wheel_circ) / TICKS_PER_REV; ]
+    Robot_init(&robot, &motor1, &motor2, 31.87, 0.014792, 0.014792);
 
     uint64_t prev_log_time = 0;
     uint64_t prev_loop_time = 0;

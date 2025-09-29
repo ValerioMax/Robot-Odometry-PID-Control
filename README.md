@@ -1,5 +1,13 @@
 # Robot-Odometry-PID-Control
 
+Per usare avr-gcc:
+    sudo apt-get install arduino arduino-mk
+
+Per usare mlx:
+    sudo apt-get update && sudo apt-get install xorg libxext-dev zlib1g-dev libbsd-dev
+
+-------------------------------
+
 Mappare porta seriale su virtual machine (VirtualBox):
 vai su Impostazioni -> PorteSeriali,
 abilita porta seriale,
@@ -101,6 +109,14 @@ NOTA: attaccando INDIRETTAMENTE la tensione, ovvero dandogliela all'HBridge, ci 
 
 -------------------------------
 
+sleep(1);   // FONDAMENTALE PER LA SINCRONIZZAZIONE
+                // SE NON LA METTO E SE DA QUI SCRIVO A FREQ ALTA ARDUINO NON RICEVE PIU
+                // APPENA APRO LA SERIALE QUESTO THREAD INIZIA A ESEGUIRE
+                // ARDUINO APPENA RICEVE UN TENTATIVO DI CONNESSIONE SERIALE SI RESETTA E CI METTE UNA FRAZIONE DI TEMPO
+                // QUESTO SLEEP SERVE PER FAR ASPETTARE CHE ARDUINO COMPLETI QUESTO PROCESSO DEL TUTTO SENNO SI SFANCULA TUTTO A QUANTO PARE
+
+-------------------------------
+
 Dopo un pò di tuning ho trovato PID params:
 - per controllo posizione (BUONI):
     kp = 300
@@ -130,7 +146,7 @@ facendo ottenere paradossalmente un segnale più piccolo!!!!!!
 -------------------------------
 
 TODO: Dopo un pò il pc client che plotta inizia a laggare: risolvilo
-UPDATE_1: draw_info(); aumenta il laf, suppongo per il draw delle stringhe.
+UPDATE_1: draw_info(); aumenta il lag, suppongo per il draw delle stringhe.
           Se lo tolgo lagga di meno ma comunque un pò lagga (dopo più tempo).
 
 -------------------------------
@@ -199,3 +215,12 @@ NOTA: se le alimentazioni sono separate ci sono casi in cui il problema persiste
  e quindi quando c'è uno spike di corrente richiesta da loro due che però non può venire soddisfatta (essendo poco potente la pila) si resettano)
 
 --> dovrei usare un buck o un DCDC che stabilizza la Vin dell'Arduino oppure usare batterie separate
+
+UPDATE: Alimentare con pacco a ioni di litio da 12V:
+        - inviando comandi separati (es: "pos 100 0", "goto 20 30") funziona bene tutto (motori + comunicazione bluetooth) .
+        - col controllo WASD no: comunicazione si blocca
+
+        Mentre se alimento arduino con cavo usb oppure alimentatore da banco anche WASD funziona senza problemi
+        (non ho provato alimentando arduino con altra pila da 9V perché si è scaricata)
+
+-------------------------------

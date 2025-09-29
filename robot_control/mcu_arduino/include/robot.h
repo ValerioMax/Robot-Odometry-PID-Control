@@ -1,12 +1,17 @@
+#ifndef ROBOT_H
+#define ROBOT_H
+
 #include "shared_types.h"
 #include "motor.h"
 #include "communication.h"
 
 typedef struct {
-    // posizione, angolo, velocità assulute nel sistema non inerziale
+    // posizione, angolo, velocità assolute nel sistema non inerziale
     float theta;
     float x;
     float y;
+    float x_prev; // for robot_goto()
+    float y_prev; // for robot_goto()
     float vx;
     float vy;
 
@@ -37,3 +42,5 @@ void Robot_get_wasd(Robot *robot);
 void Robot_update_odometry(Robot *robot);
 void Robot_update_odometry_taylor(Robot *robot);
 void Robot_goto_position(Robot *robot);
+
+#endif

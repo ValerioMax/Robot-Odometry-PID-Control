@@ -2,7 +2,7 @@
 #ifndef SHARED_TYPES_H
 # define SHARED_TYPES_H
 
-#include <pthread.h>
+# include <pthread.h>
 # include <stdint.h>
 # include <stdlib.h>
 # include <math.h>

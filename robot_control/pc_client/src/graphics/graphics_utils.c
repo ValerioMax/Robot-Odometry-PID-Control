@@ -5,7 +5,7 @@ uint32_t create_trgb(uint8_t t, uint8_t r, uint8_t g, uint8_t b) {
 	return (t << 24 | r << 16 | g << 8 | b);
 }
 
-// this fun will just fill a pixel in the pixels buffer 
+// fill a pixel in the pixels buffer 
 void my_mlx_pixel_put(t_img *img, int x, int y, int color) {
 	char *dst;
 
@@ -127,8 +127,6 @@ void draw_data(t_img *img, CircularBuffer *cbuf, t_info *axis_info, int plot_pos
 	if (!axis_info->time_range)
 		return ;
 
-	//int curr_max = HEIGHT / 10;
-
 	int prev_mapped_time = 0;
 
 	int prev_mapped_pos = 0;
@@ -193,12 +191,6 @@ void draw_data(t_img *img, CircularBuffer *cbuf, t_info *axis_info, int plot_pos
 			prev_mapped_rpm = mapped_rpm;
 			prev_mapped_rpm_trg = mapped_rpm_trg;
 			prev_mapped_rpm_err = mapped_rpm_err;
-
-			// normalize value respect to a maximum value got so far
-			//int norm_value = (sample->value / curr_max) * HEIGHT;
-			//if (sample->value > curr_max)
-			//	curr_max = sample->value;
-			//my_mlx_pixel_put(img, mapped_time, mapped_value, 0x0FFFFF00);
 		}
 	}
 }

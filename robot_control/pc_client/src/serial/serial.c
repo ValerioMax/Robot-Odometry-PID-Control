@@ -95,7 +95,7 @@ int serial_readline(int serial_port, char *buf) {
     if (read_bytes > 0) {
         // terminate string to use strtok()
         buf[read_bytes - 1] = '\0';
-        printf("received: %s\n", buf); // DEBUG
+        //printf("received: %s\n", buf); // DEBUG
     }
 
     return read_bytes;

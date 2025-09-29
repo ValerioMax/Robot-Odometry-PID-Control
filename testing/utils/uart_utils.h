@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <avr/io.h>
 
-#define BAUD 19600
+#define BAUD 19200
 #define MYUBRR (F_CPU/16/BAUD-1) // meno precisa
 //#define MYUBRR ((F_CPU + BAUD * 8) / (BAUD * 16) - 1) // più precisa
 

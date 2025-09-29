@@ -3,12 +3,7 @@
 Encoder encoder1 = {0};
 Encoder encoder2 = {0};
 
-volatile uint8_t external_int_enc1_occurred = 0;
-volatile uint8_t external_int_enc2_occurred = 0;
-
 volatile uint8_t previous_portb_state = 0;
-volatile int32_t encoder1_pos = 0;
-volatile int32_t encoder2_pos = 0;
 
 ISR(PCINT0_vect) {
     uint8_t current_portb_state = PINB;
@@ -58,6 +53,7 @@ void Encoder_init(Encoder *encoder, int pin_a, int pin_b, int port) {
     external_int_PCINT_init(mask, port);
 }
 
+// NOTA: prima usavo ISR + Encoder_read() ma ho ottenuto risultati migliori facendo tutto nella ISR
 // void Encoder_read(Encoder *encoder) {
 //     const int mask = (1 << encoder->pin_b);
 
@@ -75,18 +71,15 @@ void Encoder_init(Encoder *encoder, int pin_a, int pin_b, int port) {
 // }
 
 void Encoder_update_rpm(Encoder *encoder, uint64_t time_passed_us) {
-    // TODO: maybe use abs() cause dir is already specified
-
     // velocity in tick/s
     float v_tick = (encoder->pos - encoder->pos_prev) / (time_passed_us / 1000000.0);
 
     // velocity in rpm
     encoder->rpm = (v_tick * 60.0) / TICKS_PER_REV;
 
-    encoder->pos_diff = encoder->pos - encoder->pos_prev; // used for odometry
+    // used for odometry
+    encoder->pos_diff = encoder->pos - encoder->pos_prev; 
 
     encoder->pos_prev = encoder->pos;
-
-    //printf("v_tick %ld, encrpm %ld\n", (long) v_tick, (long) encoder->rpm);
 }
 
