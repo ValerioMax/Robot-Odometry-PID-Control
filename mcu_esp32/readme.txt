@@ -29,9 +29,9 @@ Per connettersi al Bluetooth da VM, su Virtual Box:
 2. aggiungi controller usb bluetooth
 3. avvia VM
 
-Per connettersi a Bluetooth su Linux da linea di comando
-1. da terminale scrivi:
-        bluetoothctl 
+Per connettersi a Bluetooth su Linux da linea di comando:
+1. da terminale:
+        bluetoothctl
 2. nel prompt di bluetoothctl scrivi:
         scan on
 3. trova il device, copia il suo MAC Address e fai paring e trusting:
@@ -47,3 +47,8 @@ Per connettersi a Bluetooth su Linux da linea di comando
 
 Ora il device è accessibile attraverso il device-file /dev/rfcomm0 (come le tty o ttyACM)
 e ci si può interagire con CuteCom o altro
+
+NOTA: se non si connette può essere un problema di permessi:
+1. aggiungi user al gruppo che può usare rfcomm0
+        sudo usermod -a -G dialout valerio
+2. riavvia pc
