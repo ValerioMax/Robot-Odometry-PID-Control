@@ -9,6 +9,7 @@
 # include <stdio.h>
 # include <unistd.h>
 # include <errno.h>
+# include <string.h>
 
 // TODO: potrei anche mettere solo pos e rpm e il resto calcolarlo da me senza intasare comunicazione
 

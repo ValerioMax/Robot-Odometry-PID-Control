@@ -200,8 +200,8 @@ void draw_data(t_img *img, CircularBuffer *cbuf, t_info *axis_info, int plot_pos
 }
 
 void plot_data(t_windata *windata, CircularBuffer *cbuf, t_info *axis_info, int plot_pos, int plot_rpm) {
-	// everytime create a new image in order to completely cover previous frame
-	new_image_init(windata);
+	// clear screen
+	memset(windata->img.pixels, 0, windata->img.line_length * FRAME_HEIGHT);
 
 	draw_grid(&windata->img);
 	draw_data(&windata->img, cbuf, axis_info, plot_pos, plot_rpm);
