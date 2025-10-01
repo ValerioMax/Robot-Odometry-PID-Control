@@ -24,6 +24,10 @@ void window_init(t_windata *data, const char *win_name) {
 }
 
 void new_image_init(t_windata *data) {
+	// destroy old image
+	if (data->img.img)
+		mlx_destroy_image(data->mlx, data->img.img);
+
 	// initiate image and associate it with the window
     data->img.img = mlx_new_image(data->mlx, FRAME_WIDTH, FRAME_HEIGHT);
 

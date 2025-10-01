@@ -21,6 +21,7 @@ void *thread_read(void *args) {
     cb_init(&cbuf, NUM_SAMPLES);
 
     // init window for plotting
+    win_plotting.img.img = NULL;
     window_init(&win_plotting, "plotting");
 
     // set y axis range
@@ -51,7 +52,11 @@ void *thread_read(void *args) {
     mlx_loop(win_plotting.mlx);
 
     // deallocate dynamic data
-    cb_destroy(&cbuf);
+    if (&cbuf)
+        cb_destroy(&cbuf);
+
+    if (win_plotting.img.img)
+		mlx_destroy_image(win_plotting.mlx, win_plotting.img.img);
 
     // close file tsv
     //close(fd);
@@ -76,7 +81,7 @@ int loop_task(taskdata *data) {
     if (millis() > prev_plot_time_ms + DELTA_T_PLOT_MS) {        
         set_x_axis_info(data->axis_info, data->cbuf);
 
-        //plot_data(data->windata, data->cbuf, data->axis_info, plot_pos, plot_rpm);
+        plot_data(data->windata, data->cbuf, data->axis_info, plot_pos, plot_rpm);
 
         prev_plot_time_ms = millis();
     }
