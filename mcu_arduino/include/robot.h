@@ -32,6 +32,11 @@ typedef struct {
     int pos_control;
     int rpm_control;
 
+    // log type
+    int log_odometry;
+    int log_motor_right;
+    int log_motor_left;
+
     Motor *motor_left;
     Motor *motor_right;
 } Robot;

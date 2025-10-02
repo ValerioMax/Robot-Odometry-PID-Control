@@ -68,12 +68,16 @@ Tale posizione verrà subito attuata abilitando il controllo PID di posizione pe
 Imposta la velocità target, in rpm, per motore 1 e 2. \
 Tale posizione verrà subito attuata abilitando il controllo PID di velocità per i motori.
 
-- `setwasd <1/0>` \
-Abilita/Disabilita controllo WASD del robot.
+- `setwasd` \
+Abilita controllo WASD del robot.
 
 - `goto <x> <y>` \
 Imposta la posizione target in coordinate cartesiane nel sistema fixed per il robot. \
 Tale posizione verrà subito attuata abilitando il controllo autonomo del robot.
+
+- `log <type>` \
+Fa loggare sulla UART il tipo di informazione specificata:
+    - type: {"odometry", "left", "right"} 
 
 ### WASD
 Se il controllo WASD è abilitato, il client fa entrare il terminale associato al processo in modalità non-canonical. \

@@ -66,13 +66,39 @@ int main() {
             prev_log_time = micros();
             
             // robot odometry logging
-            printf("%ld %ld, %d %d %d\n",
-                motor1.encoder->pos,
-                motor2.encoder->pos,
-                (int) (robot.x),           // in cm
-                (int) (robot.y),           // in cm
-                (int) (robot.theta*57.324) // in degrees (180 / 3.14 = 57.324)
-            );
+            if (robot.log_odometry) {
+                printf("%ld %ld, %d %d %d\n",
+                    motor1.encoder->pos,
+                    motor2.encoder->pos,
+                    (int) (robot.x),           // in cm
+                    (int) (robot.y),           // in cm
+                    (int) (robot.theta*57.324) // in degrees (180 / 3.14 = 57.324)
+                );
+            }
+            // robot motor left logging
+            else if (robot.log_motor_left) {
+                printf("%ld %ld %ld %d %d %d %u\n",
+                    robot.motor_left->encoder->pos,
+                    robot.motor_left->target_pos,
+                    robot.motor_left->err_pos,
+                    robot.motor_left->encoder->rpm,
+                    robot.motor_left->target_rpm,
+                    robot.motor_left->err_rpm,
+                    OCR4A
+                );
+            }
+            // robot motor right logging
+            else if (robot.log_motor_right) {
+                printf("%ld %ld %ld %d %d %d %u\n",
+                    robot.motor_right->encoder->pos,
+                    robot.motor_right->target_pos,
+                    robot.motor_right->err_pos,
+                    robot.motor_right->encoder->rpm,
+                    robot.motor_right->target_rpm,
+                    robot.motor_right->err_rpm,
+                    OCR4B
+                );
+            }
 
             // motor 1 & 2 logging
             // printf("%ld %d %ld %d\n", 
@@ -80,28 +106,6 @@ int main() {
             //     motor1.encoder->rpm,
             //     motor2.encoder->pos,
             //     motor2.encoder->rpm
-            // );
-
-            // motor 1 logging
-            // printf("%ld %ld %ld %d %d %d, %u\n", 
-            //     motor1.encoder->pos,
-            //     motor1.target_pos,
-            //     motor1.err_pos,
-            //     motor1.encoder->rpm,
-            //     motor1.target_rpm,
-            //     motor1.err_rpm,
-            //     OCR4A,
-            // );
-
-            // motor 2 logging
-            // printf("%ld %ld %ld %d %d %d, %u\n", 
-            //     motor2.encoder->pos,
-            //     motor2.target_pos,
-            //     motor2.err_pos,
-            //     motor2.encoder->rpm,
-            //     motor2.target_rpm,
-            //     motor2.err_rpm,
-            //     OCR4B,
             // );
         }
     }

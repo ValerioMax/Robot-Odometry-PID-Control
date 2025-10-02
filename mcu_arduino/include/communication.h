@@ -24,9 +24,12 @@
 #define RPM_COMMAND_ARGS 3
 
 #define SETWASD_COMMAND "setwasd"
-#define SETWASD_COMMAND_ARGS 2
+#define SETWASD_COMMAND_ARGS 1
 
 #define ROBOT_GOTO_COMMAND "goto"
 #define ROBOT_GOTO_COMMAND_ARGS 3
+
+#define ROBOT_LOG_COMMAND "log"
+#define ROBOT_LOG_COMMAND_ARGS 2
 
 #endif

@@ -19,9 +19,12 @@ void Robot_init(Robot *robot, Motor *motor_left, Motor *motor_right, float b, fl
 
     robot->wasd_control = 0;
     robot->auto_control = 0;
-
     robot->pos_control = 1;
     robot->rpm_control = 0;
+
+    robot->log_odometry = 1;
+    robot->log_motor_left = 0;
+    robot->log_motor_right = 0;
 
     robot->motor_left = motor_left;
     robot->motor_right = motor_right;
@@ -68,6 +71,8 @@ void Robot_get_commands(Robot *robot) {
     }
     // pwm <dir_motor1_left> <duty_cycle%_motor_left> <dir_motor_right> <duty_cycle%_motor_right>
     else if (!strcmp(cmd_args[0], PWM_COMMAND) && arg_count == PWM_COMMAND_ARGS) {
+        robot->wasd_control = 0;
+        robot->auto_control = 0;
         robot->pos_control = 0;
         robot->rpm_control = 0;
         robot->motor_left->manual_control = 1;
@@ -85,6 +90,8 @@ void Robot_get_commands(Robot *robot) {
     }
     // pos	<pos_motor_1> <pos_motor_2> 
     else if (!strcmp(cmd_args[0], POS_COMMAND) && arg_count == POS_COMMAND_ARGS) {
+        robot->wasd_control = 0;
+        robot->auto_control = 0;
         robot->pos_control = 1;
         robot->rpm_control = 0;
         robot->motor_left->manual_control = 0;
@@ -94,6 +101,8 @@ void Robot_get_commands(Robot *robot) {
     }
     // rpm	<rpm_motor_1> <rpm_motor_2> 
     else if (!strcmp(cmd_args[0], RPM_COMMAND) && arg_count == RPM_COMMAND_ARGS) {
+        robot->wasd_control = 0;
+        robot->auto_control = 0;
         robot->pos_control = 0;
         robot->rpm_control = 1;
         robot->motor_left->manual_control = 0;
@@ -104,9 +113,18 @@ void Robot_get_commands(Robot *robot) {
 
 
     /* [ROBOT COMMANDS] */
-    // setwasd <1/0>
+    // setwasd
     else if (!strcmp(cmd_args[0], SETWASD_COMMAND) && arg_count == SETWASD_COMMAND_ARGS) {
-        robot->wasd_control = atoi(cmd_args[1]);
+        robot->wasd_control = 1;
+        robot->auto_control = 0;
+        robot->pos_control = 1;
+        robot->rpm_control = 0;
+        robot->motor_left->manual_control = 0;
+        robot->motor_right->manual_control = 0;
+
+        // if we suddenly set wasd mode and use pos control we dont want to use old target pos
+        robot->motor_left->target_pos = robot->motor_left->encoder->pos;
+        robot->motor_right->target_pos = robot->motor_right->encoder->pos;
     }
     // goto <x> <y>
     else if (!strcmp(cmd_args[0], ROBOT_GOTO_COMMAND) && arg_count == ROBOT_GOTO_COMMAND_ARGS) {
@@ -114,11 +132,31 @@ void Robot_get_commands(Robot *robot) {
         robot->auto_control = 1;
         robot->pos_control = 0;
         robot->rpm_control = 1;
+        robot->motor_left->manual_control = 0;
+        robot->motor_right->manual_control = 0;
         //robot->pos_control = 0; // UNCOMMENT IF USING DIRECT PWM CONTROL
         //robot->rpm_control = 0; // UNCOMMENT IF USING DIRECT PWM CONTROL
         robot->target_x = (float) atoi(cmd_args[1]);
         robot->target_y = (float) atoi(cmd_args[2]);
     }
+    // log <type>
+    else if (!strcmp(cmd_args[0], ROBOT_LOG_COMMAND) && arg_count == ROBOT_LOG_COMMAND_ARGS) {
+        if (!strcmp(cmd_args[1], "odometry")) {
+            robot->log_odometry = 1;
+            robot->log_motor_left = 0;
+            robot->log_motor_right = 0;
+        }
+        else if (!strcmp(cmd_args[1], "left")) {
+            robot->log_odometry = 0;
+            robot->log_motor_left = 1;
+            robot->log_motor_right = 0;
+        }
+        else if (!strcmp(cmd_args[0], "right")) {
+            robot->log_odometry = 0;
+            robot->log_motor_left = 0;
+            robot->log_motor_right = 1;
+        }
+    } 
 }
 
 // direct WASD control in case WASD control is active

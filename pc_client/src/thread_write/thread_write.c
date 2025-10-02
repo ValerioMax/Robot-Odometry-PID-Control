@@ -35,7 +35,7 @@ void *thread_write(void *args) {
             plot_pos = 0;
             plot_rpm = 1;
         }
-        else if (!strncmp(line, "setwasd 1", 9))
+        else if (!strncmp(line, "setwasd", 7))
             start_wasd_interface(serial_port);
             
         free(line);
