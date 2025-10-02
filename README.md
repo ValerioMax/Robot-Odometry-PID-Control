@@ -77,7 +77,7 @@ Tale posizione verrà subito attuata abilitando il controllo autonomo del robot.
 
 - `log <type>` \
 Fa loggare sulla UART il tipo di informazione specificata:
-    - type: {"odometry", "left", "right"} 
+    - type: {"odometry", "posleft", "posright", "rpmleft", "rpmright", "0"} 
 
 ### WASD
 Se il controllo WASD è abilitato, il client fa entrare il terminale associato al processo in modalità non-canonical. \
@@ -91,9 +91,13 @@ Per uscire spingere 'q'.
     kd = 15 
 
 - per il controllo di velocità settare: \
-    kp = 2500 \
-    ki = 2000 \
+    kp = 500 \
+    ki = 1000-1300 \
     kd = 0
+
+- Maggiore è la quantità di dati scritta dall'Arduino sulla UART, più rallentato sarà il main loop e quindi maggiore ripple dei motori ci sarà. \
+(es: printando solo rpm il grafico degli rpm computati è smooth mentre aggiungendo anche altro nella printf si notano degli spike **(a prescindere dal filtro applicato)**) \
+(sarebbe utile un MCU multicore per usare un core appositamente per loggare su seriale)
 
 ## Software Requirements
 Per usare avr-gcc: 

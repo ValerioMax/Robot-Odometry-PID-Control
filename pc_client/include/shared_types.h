@@ -31,7 +31,7 @@ typedef struct s_info {
 } t_info;
 
 # define NUM_SAMPLES 200
-# define MAX_SAMPLE_VALUE_DEFAULT 2000 // TODO cambiare questo valore costante
+# define MAX_SAMPLE_VALUE_DEFAULT 100 //2000 // TODO cambiare questo valore costante
 
 # define MAX_BUFFER_SIZE 256
 

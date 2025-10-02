@@ -45,31 +45,23 @@ void fill_one_sample(CircularBuffer *cbuf, char *line) {
     int token_count = 0;
 
     while (token) {
-        switch (token_count) {
+        switch (token[0]) { // token format: "<char_id><value>"
             // pos
-            case 0:
-                sample.pos = atoi(token);
+            case 'p':
+                sample.pos = atoi(token + 1);
                 break;
-            // target pos
-            case 1:
-                sample.pos_target = atoi(token);
-                break;
-            // error pos
-            case 2:
-                sample.pos_error = atoi(token);
+            // pos target
+            case 'P':
+                sample.pos_target = atoi(token + 1);
                 break;
             // rpm
-            case 3:
-                sample.rpm = atoi(token);
+            case 'r':
+                sample.rpm = atoi(token + 1);
                 break;
-            // target rpm
-            case 4:
-                sample.rpm_target = atoi(token);
-                break;
-            // error rpm
-            case 5:
-                sample.rpm_error = atoi(token);
-                break;
+            // rpm target
+            case 'R':
+                sample.rpm_target = atoi(token + 1);
+                    break;
             default:
                 break;
         }
@@ -77,12 +69,14 @@ void fill_one_sample(CircularBuffer *cbuf, char *line) {
         token_count++;
     }
 
-    // if not all data arrived exit
+    // if no data arrived exit
     // (cause if a field hasnt arrived it would be set to 0 because of sample = {0}; and so 0 would be plotted when actual value isnt 0)
-    if (token_count != NUM_TOKENS)
+    if (token_count == 0) //!= NUM_TOKENS)
         return ;
 
     sample.timestamp = millis();
+    sample.pos_error = sample.pos_target - sample.pos;
+    sample.rpm_error = sample.rpm_target - sample.rpm;
 
     //printf("c %lld, %d %d %d, %d %d %d\n", sample.timestamp, sample.pos, sample.pos_target, sample.pos_error, sample.rpm, sample.rpm_target, sample.rpm_error);
 

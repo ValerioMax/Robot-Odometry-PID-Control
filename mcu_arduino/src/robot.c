@@ -23,8 +23,10 @@ void Robot_init(Robot *robot, Motor *motor_left, Motor *motor_right, float b, fl
     robot->rpm_control = 0;
 
     robot->log_odometry = 1;
-    robot->log_motor_left = 0;
-    robot->log_motor_right = 0;
+    robot->log_pos_motor_left = 0;
+    robot->log_pos_motor_right = 0;
+    robot->log_rpm_motor_left = 0;
+    robot->log_rpm_motor_right = 0;
 
     robot->motor_left = motor_left;
     robot->motor_right = motor_right;
@@ -143,18 +145,45 @@ void Robot_get_commands(Robot *robot) {
     else if (!strcmp(cmd_args[0], ROBOT_LOG_COMMAND) && arg_count == ROBOT_LOG_COMMAND_ARGS) {
         if (!strcmp(cmd_args[1], "odometry")) {
             robot->log_odometry = 1;
-            robot->log_motor_left = 0;
-            robot->log_motor_right = 0;
+            robot->log_pos_motor_left = 0;
+            robot->log_pos_motor_right = 0;
+            robot->log_rpm_motor_left = 0;
+            robot->log_rpm_motor_right = 0;
         }
-        else if (!strcmp(cmd_args[1], "left")) {
+        else if (!strcmp(cmd_args[1], "posleft")) {
             robot->log_odometry = 0;
-            robot->log_motor_left = 1;
-            robot->log_motor_right = 0;
+            robot->log_pos_motor_left = 1;
+            robot->log_pos_motor_right = 0;
+            robot->log_rpm_motor_left = 0;
+            robot->log_rpm_motor_right = 0;
         }
-        else if (!strcmp(cmd_args[0], "right")) {
+        else if (!strcmp(cmd_args[1], "posright")) {
             robot->log_odometry = 0;
-            robot->log_motor_left = 0;
-            robot->log_motor_right = 1;
+            robot->log_pos_motor_left = 0;
+            robot->log_pos_motor_right = 1;
+            robot->log_rpm_motor_left = 0;
+            robot->log_rpm_motor_right = 0;
+        }
+        else if (!strcmp(cmd_args[1], "rpmleft")) {
+            robot->log_odometry = 0;
+            robot->log_pos_motor_left = 0;
+            robot->log_pos_motor_right = 0;
+            robot->log_rpm_motor_left = 1;
+            robot->log_rpm_motor_right = 0;
+        }
+        else if (!strcmp(cmd_args[1], "rpmright")) {
+            robot->log_odometry = 0;
+            robot->log_pos_motor_left = 0;
+            robot->log_pos_motor_right = 0;
+            robot->log_rpm_motor_left = 0;
+            robot->log_rpm_motor_right = 1;
+        }
+        else if (!strcmp(cmd_args[1], "0")) {
+            robot->log_odometry = 0;
+            robot->log_pos_motor_left = 0;
+            robot->log_pos_motor_right = 0;
+            robot->log_rpm_motor_left = 0;
+            robot->log_rpm_motor_right = 0;
         }
     } 
 }

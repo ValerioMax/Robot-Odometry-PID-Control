@@ -35,7 +35,7 @@ typedef struct {
 
     // state integral values for PID
     int32_t e_pos_integral;
-    int e_rpm_integral;
+    float e_rpm_integral;
 
     // state values to compute low pass filter
     int rpm_prev;

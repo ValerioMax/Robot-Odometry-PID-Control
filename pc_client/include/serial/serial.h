@@ -7,7 +7,7 @@
 
 # include "shared_types.h"
 
-# define TTY_DEVICE_NAME "/dev/rfcomm0" // "/dev/ttyACM0"
+# define TTY_DEVICE_NAME "/dev/ttyACM0" //"/dev/rfcomm0"
 
 int     serial_init(const char *tty_device, int mode, int baud, int blocking, int timeout);
 int     serial_readline(int serial_port, char *buf);

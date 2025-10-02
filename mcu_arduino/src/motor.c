@@ -139,7 +139,7 @@ void Motor_PID_speed(Motor *motor, uint64_t time_passed_us) {
     int target_rpm = motor->target_rpm;
     int rpm = motor->encoder->rpm;
     int e_rpm_prev = motor->err_rpm;
-    int e_rpm_integral = motor->e_rpm_integral;
+    float e_rpm_integral = motor->e_rpm_integral;
     int rpm_filt = motor->rpm_filt;
     int rpm_prev = motor->rpm_prev;
 
@@ -155,16 +155,21 @@ void Motor_PID_speed(Motor *motor, uint64_t time_passed_us) {
     // error
     int e = target_rpm - rpm_filt; // UNCOMMENT when using Low Pass filter
     //int e = target_rpm - rpm;
-
-    // derivative
     float de_dt = (e - e_rpm_prev) / (time_passed_us / 1000000.0);
-
-    // integral
     e_rpm_integral = e_rpm_integral + e * (time_passed_us / 1000000.0);
 
-    // e_integral clamping
-    if (e_rpm_integral > E_INTEGRAL_MAX) e_rpm_integral = E_INTEGRAL_MAX;
-    else if (e_rpm_integral < E_INTEGRAL_MIN) e_rpm_integral = E_INTEGRAL_MIN;
+    // make integral term occupy at maximum 50% of command u
+    float integral_max = (MAX_PWM_TICKS * 0.5) / ki;
+    float integral_min = -integral_max;
+
+    if (e_rpm_integral > integral_max)
+        e_rpm_integral = integral_max;
+    else if (e_rpm_integral < integral_min)
+        e_rpm_integral = integral_min;
+
+    // to make sure motor stops completely TODO: NON mi fa impazzire
+    if (fabs(target_rpm) < 3)
+        e_rpm_integral = 0;
 
     // control signal
     float u = (kp * e) + (ki * e_rpm_integral) + (kd * de_dt);
@@ -191,3 +196,80 @@ void Motor_PID_speed(Motor *motor, uint64_t time_passed_us) {
     motor->rpm_filt = rpm_filt;
     motor->rpm_prev = rpm_prev;
 }
+
+/*
+void Motor_PID_speed(Motor *motor, uint64_t time_passed_us) {
+    if (motor->manual_control)
+        return ;
+
+    // get motor state values
+    int target_rpm = motor->target_rpm;
+    int rpm = motor->encoder->rpm;
+    int e_rpm_prev = motor->err_rpm;
+    float e_rpm_integral = motor->e_rpm_integral;
+    int rpm_filt = motor->rpm_filt;
+    int rpm_prev = motor->rpm_prev;
+
+    // low-pass filter (25 Hz cutoff frequency (w0))
+    rpm_filt = (0.854 * rpm_filt) + (0.0728 * rpm) + (0.0728 * rpm_prev);
+    rpm_prev = rpm;
+
+    // get motor PID parameters
+    int32_t kp = motor->kp;
+    int32_t ki = motor->ki; 
+    int32_t kd = motor->kd;
+
+    // error
+    int e = target_rpm - rpm_filt; // UNCOMMENT when using Low Pass filter
+    //int e = target_rpm - rpm;
+    float de_dt = (e - e_rpm_prev) / (time_passed_us / 1000000.0);
+    float integral_increment = e * (time_passed_us / 1000000.0);
+
+    float p_term = kp * e;
+    float i_term = ki * (e_rpm_integral + integral_increment);
+    float d_term = kd * de_dt;
+
+    // Advanced Anti-Windup
+    float integral_needed_max = (MAX_PWM_TICKS - (p_term + d_term));
+    float integral_needed_min = (-MAX_PWM_TICKS - (p_term + d_term));
+
+    if (i_term > integral_needed_max)
+        i_term = integral_needed_max;
+    else if (i_term < integral_needed_min)
+        i_term = integral_needed_min;
+    else
+        e_rpm_integral += integral_increment;
+    
+    //TODO: BRUTTO credo
+    if (fabs(target_rpm) < 5) {
+        e_rpm_integral = 0;
+        i_term = 0;
+    }
+
+    // control signal
+    //float u = (kp * e) + (ki * e_rpm_integral) + (kd * de_dt);
+    float u = p_term + i_term + d_term;
+
+    // motor speed signal
+    float u_pwm = fabs(u);
+
+    // cap it to max value
+    if(u_pwm > MAX_PWM_TICKS)
+        u_pwm = MAX_PWM_TICKS;
+
+    // motor direction
+    int dir = 1;
+    if (u < 0)
+        dir = -1;
+
+    // actuate command
+    Motor_set_pwm(motor, dir, (uint16_t) u_pwm);
+
+    // update motor position error
+    motor->err_rpm = e;
+    motor->e_rpm_integral = e_rpm_integral;    
+
+    motor->rpm_filt = rpm_filt;
+    motor->rpm_prev = rpm_prev;
+}
+*/

@@ -34,8 +34,10 @@ typedef struct {
 
     // log type
     int log_odometry;
-    int log_motor_right;
-    int log_motor_left;
+    int log_pos_motor_left;
+    int log_pos_motor_right;
+    int log_rpm_motor_left;
+    int log_rpm_motor_right;
 
     Motor *motor_left;
     Motor *motor_right;
